@@ -134,8 +134,6 @@
   #status b { color: var(--ink); }
   .controls { display: flex; align-items: center; gap: 14px; }
   #rollBtn { flex: 1; padding: 16px; font-size: 1.15rem; }
-  .dir-buttons { display: flex; gap: 8px; margin-top: 10px; }
-  .dir-buttons .btn { flex: 1; font-size: .95rem; padding: 10px; }
 
   .die {
     width: 64px; height: 64px; flex: none; border-radius: 15px; padding: 9px; gap: 2px;
@@ -206,25 +204,44 @@
   .qbody { padding: 20px; }
   #qText { font-family: var(--display); font-size: 1.4rem; font-weight: 500; line-height: 1.35; margin-bottom: 18px; }
   #qChoices { display: grid; gap: 10px; }
-  #qChoices button {
+  #qChoices button[data-c] {
     display: flex; align-items: center; gap: 12px; text-align: left;
     font: inherit; font-weight: 700; font-size: 1.02rem; color: var(--ink);
     background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px;
     padding: 11px 14px; cursor: pointer; transition: transform .1s, background .2s, border-color .2s, opacity .2s;
   }
-  #qChoices button:hover:not(:disabled) { border-color: rgba(255,255,255,.4); transform: translateX(3px); }
-  #qChoices button:disabled { cursor: default; }
-  #qChoices button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+  #qChoices button[data-c]:hover:not(:disabled) { border-color: rgba(255,255,255,.4); transform: translateX(3px); }
+  #qChoices button[data-c]:disabled { cursor: default; }
+  #qChoices button[data-c]:disabled:not(.correct):not(.wrong) { opacity: .45; }
   .key { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
          background: rgba(255,255,255,.1); font-family: var(--display); font-weight: 600; }
-  #qChoices button.correct { border-color: var(--good); background: rgba(52,211,153,.18); animation: pop .3s; }
-  #qChoices button.correct .key { background: var(--good); color: #04241a; }
-  #qChoices button.wrong { border-color: var(--bad); background: rgba(248,113,113,.16); animation: shake .4s; }
-  #qChoices button.wrong .key { background: var(--bad); color: #2a0606; }
+  #qChoices button[data-c].correct { border-color: var(--good); background: rgba(52,211,153,.18); animation: pop .3s; }
+  #qChoices button[data-c].correct .key { background: var(--good); color: #04241a; }
+  #qChoices button[data-c].wrong { border-color: var(--bad); background: rgba(248,113,113,.16); animation: shake .4s; }
+  #qChoices button[data-c].wrong .key { background: var(--bad); color: #2a0606; }
   @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
   #qFeedback { min-height: 1.5em; margin: 16px 0 0; font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
   #qContinue { width: 100%; margin-top: 12px; display: none; }
 
+  .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pick-grid button {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    font: inherit; font-weight: 800; color: #fff; border: none; border-radius: 14px; padding: 14px;
+    cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow: inset 0 -3px 0 rgba(0,0,0,.25);
+    transition: transform .1s, filter .2s, opacity .2s;
+  }
+  .pick-grid button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
+  .pick-grid button:disabled { cursor: default; opacity: .5; }
+  .pick-grid button.chosen { opacity: 1; outline: 3px solid #fff; transform: scale(1.03); }
+  .pick-grid span { font-size: 22px; }
+  @media (max-width: 420px) { .pick-grid { grid-template-columns: 1fr; } }
+  .say-hint { color: var(--muted); font-weight: 700; margin: 0 0 12px; }
+  .answer-box { border: 2px dashed rgba(255,255,255,.25); border-radius: 14px; padding: 14px; text-align: center;
+                font-family: var(--display); font-size: 1.35rem; font-weight: 600; animation: pop .25s; }
+  .answer-box small { display: block; font-family: var(--body); font-size: .75rem; letter-spacing: .1em; color: var(--muted); font-weight: 800; margin-bottom: 4px; }
+  .judge { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .btn.good { background: linear-gradient(#86efac, #22c55e); color: #04241a; box-shadow: 0 4px 0 #15803d, 0 8px 18px rgba(0,0,0,.3); }
+  .btn.bad { background: linear-gradient(#fca5a5, #ef4444); color: #2a0606; box-shadow: 0 4px 0 #b91c1c, 0 8px 18px rgba(0,0,0,.3); }
   #winCard { text-align: center; padding: 28px 22px; }
   #winCard .trophy { font-size: 72px; animation: float 2s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-8px); } }
@@ -267,10 +284,11 @@
     <p class="goal-lead">Be the first to <b>collect all six colored wedges</b> — one from each category — and then <b>answer a final question in the Hub</b> to win.</p>
     <div class="goal-wedges" id="goalWedges"></div>
     <ol class="goal-steps">
-      <li><span>🎲</span><div><b>Roll and move</b> either way around the ring.</div></li>
-      <li><span>❓</span><div><b>Answer a question</b> from the color you land on. Get it right and you go again; miss and the next player is up.</div></li>
-      <li><span>★</span><div><b>Land on a wedge space</b> (the ones with icon badges) and answer correctly to earn that wedge.</div></li>
-      <li><span>🏆</span><div><b>Got all six?</b> Head to the Hub and answer one last question to win!</div></li>
+      <li><span>🎲</span><div><b>Everyone starts in the Hub.</b> Roll and move the full count in any direction — along the spokes or around the ring — but you can't double back.</div></li>
+      <li><span>❓</span><div><b>Answer a question</b> from the color you land on. Get it right and you roll again; miss and the next player is up.</div></li>
+      <li><span>★</span><div><b>Land on a wedge space</b> (the big spaces with icon badges at the end of each spoke) and answer correctly to earn that wedge.</div></li>
+      <li><span>⭐</span><div><b>Land in the Hub early?</b> You pick any category for your question.</div></li>
+      <li><span>🏆</span><div><b>Got all six?</b> Land in the Hub by <b>exact count</b>. Your opponents choose the category of your final question — answer it to win!</div></li>
     </ol>
   </div>
 
@@ -287,6 +305,11 @@
     <label>Players &amp; teams</label>
     <div id="nameInputs"></div>
     <p class="hint">Set any player to 🤖 to play against the computer. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
+    <label for="answerMode">Answer style</label>
+    <select id="answerMode">
+      <option value="classic" selected>Classic — say it out loud, then reveal</option>
+      <option value="mc">Multiple choice — pick A, B, C or D</option>
+    </select>
     <button class="btn" id="startBtn">Start Game</button>
   </div>
 </section>
@@ -310,7 +333,6 @@
       <div class="die" id="die"></div>
       <button class="btn" id="rollBtn">Roll</button>
     </div>
-    <div class="dir-buttons" id="dirButtons"></div>
 
     <h3 class="players-head"><span>Players</span><span>Wedges</span></h3>
     <ul id="players"></ul>
@@ -321,13 +343,15 @@
     <details>
       <summary>How to play</summary>
       <ul>
-        <li>Roll, then tap one of the two glowing spaces (or use the arrow buttons).</li>
+        <li>Everyone starts in the Hub. Roll, then tap any glowing space. You must move the full count, in any direction (spokes, ring or through the Hub), without doubling back.</li>
         <li>Answer a question from that space's category. Right = roll again. Wrong = next player.</li>
         <li>Spaces with an icon badge are <b>wedge spaces</b>. Answer correctly there to earn that wedge — it fills in a circle next to your name (hover or tap a circle to see its category).</li>
         <li>Die spaces give you a free roll.</li>
-        <li>With all six wedges, head to the Hub and answer one final question to win.</li>
+        <li>Land in the Hub before you have all six wedges and you choose the category.</li>
+        <li>With all six wedges, land in the Hub by exact count. Opponents pick the category of your final question. Miss it and you must leave the Hub and come back.</li>
+        <li><b>Classic answers:</b> say your answer aloud, tap <b>Show answer</b>, then mark it right or wrong.</li>
         <li>🤖 Computer players take their turns automatically.</li>
-        <li>Keyboard: <b>1–4</b> or <b>A–D</b> to answer, <b>Enter</b> to continue, <b>R</b> to roll.</li>
+        <li>Keyboard: <b>R</b> to roll. Classic: <b>Enter</b> to reveal, <b>Y</b>/<b>N</b> to mark. Multiple choice: <b>1–4</b> or <b>A–D</b>, <b>Enter</b> to continue.</li>
       </ul>
     </details>
     <div style="margin-top:16px">
@@ -362,6 +386,23 @@
     <h2 id="winText"></h2>
     <p>All six wedges and a correct final answer. Well played!</p>
     <button class="btn" id="playAgainBtn" style="margin-top:8px">Play Again</button>
+  </div>
+</div>
+
+<!-- ================= CATEGORY PICKER ================= -->
+<div class="overlay" id="pickOverlay">
+  <div class="qcard">
+    <div class="qhead" style="background:linear-gradient(135deg,#f5c451,#a8730f)">
+      <span class="qicon">⭐</span>
+      <div>
+        <div class="qcat" id="pickTitle"></div>
+        <div class="qtag" id="pickSub"></div>
+      </div>
+    </div>
+    <div class="qbody">
+      <div class="pick-grid" id="pickGrid"></div>
+      <div id="pickNote" class="say-hint" style="margin:14px 0 0"></div>
+    </div>
   </div>
 </div>
 
@@ -653,25 +694,22 @@ const PLAYER_COLORS = ["#ffffff", "#1f2937", "#facc15", "#22d3ee", "#fb923c", "#
 const CPU_LEVELS = { easy: 0.45, medium: 0.65, hard: 0.85 };
 const PLAYER_TYPES = [["human", "👤 Human"], ["easy", "🤖 Easy"], ["medium", "🤖 Medium"], ["hard", "🤖 Hard"]];
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-const C = 220, R_IN = 151, R_OUT = 193, R_MID = 172;
 
-// ---------- Build the ring: 36 spaces, a wedge (HQ) space every 6th ----------
-const SPACES = [];
-for (let k = 0; k < 6; k++) {
-  SPACES.push({ type: "hq", cat: k });
-  for (const p of [1, 3, "roll", 4, 2]) {
-    SPACES.push(p === "roll" ? { type: "roll" } : { type: "cat", cat: (k + p) % 6 });
-  }
-}
-const N = SPACES.length;
-const HALF = 180 / N - 0.7;
+// ---------- Board geometry ----------
+const C = 220, R_IN = 158, R_OUT = 196, R_MID = 177, HUB_R = 60;
+const RING_N = 42, SPOKE_LEN = 5;
+// Between each pair of wedge spaces on the ring: 6 spaces, two of them "roll again"
+const RING_PATTERN = ["cat", "roll", "cat", "cat", "roll", "cat"];
+const RING_HALF = 180 / RING_N - 0.6;
 
 // ---------- Helpers ----------
 const $ = id => document.getElementById(id);
 const rad = d => d * Math.PI / 180;
 const f = n => n.toFixed(2);
-const spaceAngle = i => -90 + i * (360 / N);
 const polar = (r, deg) => [C + r * Math.cos(rad(deg)), C + r * Math.sin(rad(deg))];
+const ringAngle = i => -90 + i * 360 / RING_N;
+const spokeAngle = k => -90 + k * 60;
+const spokeR = j => HUB_R + 2 + 19.2 * (j - 0.5);
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -699,19 +737,82 @@ function arcSeg(r1, r2, a1, a2) {
   return `M${f(x1)} ${f(y1)}A${r2} ${r2} 0 0 1 ${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}A${r1} ${r1} 0 0 0 ${f(x4)} ${f(y4)}Z`;
 }
 
+// ---------- Build the board as a graph ----------
+// Node 0 = Hub. Nodes 1–30 = spokes (6 spokes × 5 spaces). Nodes 31–72 = outer ring (42 spaces).
+const NODES = [{ id: 0, type: "hub", kind: "hub", adj: [] }];
+for (let k = 0; k < 6; k++)
+  for (let j = 1; j <= SPOKE_LEN; j++)
+    NODES.push({ id: NODES.length, type: "cat", cat: (k + j) % 6, kind: "spoke", k, j, adj: [] });
+for (let i = 0; i < RING_N; i++) {
+  const k = Math.floor(i / 7), m = i % 7;
+  let node;
+  if (m === 0) node = { type: "hq", cat: k };
+  else if (RING_PATTERN[m - 1] === "roll") node = { type: "roll" };
+  else {
+    const order = [(k + 3) % 6, (k + 5) % 6, (k + 2) % 6, (k + 4) % 6];
+    node = { type: "cat", cat: order[[1, 3, 4, 6].indexOf(m)] };
+  }
+  NODES.push({ id: NODES.length, kind: "ring", i, adj: [], ...node });
+}
+const spokeId = (k, j) => 1 + k * SPOKE_LEN + (j - 1);
+const ringId = i => 1 + 6 * SPOKE_LEN + i;
+const HQ_ID = k => ringId(k * 7);
+const link = (a, b) => { NODES[a].adj.push(b); NODES[b].adj.push(a); };
+for (let k = 0; k < 6; k++) {
+  link(0, spokeId(k, 1));
+  for (let j = 1; j < SPOKE_LEN; j++) link(spokeId(k, j), spokeId(k, j + 1));
+  link(spokeId(k, SPOKE_LEN), HQ_ID(k));
+}
+for (let i = 0; i < RING_N; i++) link(ringId(i), ringId((i + 1) % RING_N));
+
+// Shortest distances between every pair of spaces (used by the computer player)
+const DIST = NODES.map(n => {
+  const d = new Array(NODES.length).fill(Infinity);
+  d[n.id] = 0;
+  const q = [n.id];
+  while (q.length) {
+    const x = q.shift();
+    for (const y of NODES[x].adj) if (d[y] === Infinity) { d[y] = d[x] + 1; q.push(y); }
+  }
+  return d;
+});
+
+function nodeXY(id) {
+  const n = NODES[id];
+  if (n.kind === "hub") return [C, C];
+  if (n.kind === "spoke") return polar(spokeR(n.j), spokeAngle(n.k));
+  return polar(R_MID, ringAngle(n.i));
+}
+
+// Every space reachable with exactly `steps` moves, never doubling back. Map: destination -> path.
+function destinations(from, steps) {
+  const res = new Map();
+  (function go(node, prev, left, path) {
+    if (left === 0) { if (!res.has(node)) res.set(node, path); return; }
+    for (const n of NODES[node].adj) {
+      if (n === prev) continue;
+      go(n, node, left - 1, [...path, n]);
+    }
+  })(from, -1, steps, []);
+  res.delete(from);
+  return res;
+}
+
 // ---------- SVG definitions (gradients, shadows) ----------
 function buildDefs() {
   let d = `<defs>
     <radialGradient id="boardBg" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#21566a"/><stop offset="1" stop-color="#0a2029"/></radialGradient>
     <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9a666"/><stop offset=".5" stop-color="#7a4b22"/><stop offset="1" stop-color="#b47a42"/></linearGradient>
-    <radialGradient id="rollGrad" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="205"><stop offset=".66" stop-color="#1c2833"/><stop offset=".82" stop-color="#34495e"/><stop offset="1" stop-color="#5d7389"/></radialGradient>
+    <radialGradient id="rollGrad" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="200"><stop offset=".79" stop-color="#1c2833"/><stop offset=".89" stop-color="#34495e"/><stop offset="1" stop-color="#5d7389"/></radialGradient>
     <radialGradient id="tokenSheen" cx="35%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient>
     <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="1.8" flood-color="#000" flood-opacity=".6"/></filter>`;
   CATEGORIES.forEach((c, k) => {
-    d += `<radialGradient id="cg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="205">
-            <stop offset=".66" stop-color="${shade(c.color, -.45)}"/><stop offset=".82" stop-color="${c.color}"/><stop offset="1" stop-color="${shade(c.color, .3)}"/></radialGradient>
-          <radialGradient id="hg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="64">
-            <stop offset=".25" stop-color="${shade(c.color, -.3)}"/><stop offset="1" stop-color="${shade(c.color, .15)}"/></radialGradient>`;
+    d += `<radialGradient id="cg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="200">
+            <stop offset=".79" stop-color="${shade(c.color, -.45)}"/><stop offset=".89" stop-color="${c.color}"/><stop offset="1" stop-color="${shade(c.color, .3)}"/></radialGradient>
+          <radialGradient id="hg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="${HUB_R + 2}">
+            <stop offset=".25" stop-color="${shade(c.color, -.3)}"/><stop offset="1" stop-color="${shade(c.color, .15)}"/></radialGradient>
+          <linearGradient id="lg${k}" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="${shade(c.color, -.3)}"/><stop offset="1" stop-color="${shade(c.color, .2)}"/></linearGradient>`;
   });
   return d + `</defs>`;
 }
@@ -722,50 +823,63 @@ function buildStaticBoard() {
   s += `<circle cx="${C}" cy="${C}" r="217" fill="url(#rim)"/>`;
   s += `<circle cx="${C}" cy="${C}" r="209" fill="url(#boardBg)" stroke="rgba(0,0,0,.4)" stroke-width="2"/>`;
   s += `<circle cx="${C}" cy="${C}" r="${R_MID}" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="${R_OUT - R_IN + 14}"/>`;
-  for (const r of [92, 118]) s += `<circle cx="${C}" cy="${C}" r="${r}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
 
-  // Spokes from hub to each wedge space
+  // Spokes
   for (let k = 0; k < 6; k++) {
-    const a = spaceAngle(k * 6);
-    for (let j = 0; j < 5; j++) {
-      const [x, y] = polar(80 + j * 13.5, a);
-      s += `<rect x="-6" y="-9.5" width="12" height="19" rx="3.5" fill="url(#cg${(k + j + 1) % 6})"
-              stroke="rgba(0,0,0,.4)" stroke-width="1" transform="translate(${f(x)} ${f(y)}) rotate(${a})"/>`;
-      s += `<rect x="-6" y="-9.5" width="12" height="19" rx="3.5" fill="${CATEGORIES[(k + j + 1) % 6].color}" opacity=".75"
-              transform="translate(${f(x)} ${f(y)}) rotate(${a})"/>`;
-    }
+    const [x1, y1] = polar(HUB_R - 4, spokeAngle(k)), [x2, y2] = polar(R_IN - 2, spokeAngle(k));
+    s += `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="rgba(0,0,0,.38)" stroke-width="33"/>`;
   }
+  NODES.filter(n => n.kind === "spoke").forEach(n => {
+    const [x, y] = nodeXY(n.id), a = spokeAngle(n.k);
+    s += `<rect x="-8.6" y="-12.5" width="17.2" height="25" rx="4" fill="url(#lg${n.cat})"
+            stroke="rgba(0,0,0,.45)" stroke-width="1" transform="translate(${f(x)} ${f(y)}) rotate(${a})"/>`;
+  });
 
-  // Ring spaces
-  SPACES.forEach((sp, i) => {
-    const a = spaceAngle(i);
-    const hq = sp.type === "hq";
-    const fill = sp.type === "roll" ? "url(#rollGrad)" : `url(#cg${sp.cat})`;
-    s += `<path d="${arcSeg(hq ? R_IN - 8 : R_IN, hq ? R_OUT + 7 : R_OUT, a - HALF, a + HALF)}" fill="${fill}"
+  // Outer ring
+  NODES.filter(n => n.kind === "ring").forEach(n => {
+    const a = ringAngle(n.i), hq = n.type === "hq";
+    const fill = n.type === "roll" ? "url(#rollGrad)" : `url(#cg${n.cat})`;
+    s += `<path d="${arcSeg(hq ? R_IN - 8 : R_IN, hq ? R_OUT + 7 : R_OUT, a - RING_HALF, a + RING_HALF)}" fill="${fill}"
             stroke="rgba(0,0,0,.45)" stroke-width="1.2"/>`;
     const [x, y] = polar(R_MID, a);
-    if (sp.type === "roll") {
+    if (n.type === "roll") {
       s += `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 90})" opacity=".95">
-              <rect x="-8" y="-8" width="16" height="16" rx="4" fill="#f8f4ea"/>
-              ${[[-4, -4], [4, -4], [0, 0], [-4, 4], [4, 4]].map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.7" fill="#1f2937"/>`).join("")}
+              <rect x="-7" y="-7" width="14" height="14" rx="3.5" fill="#f8f4ea"/>
+              ${[[-3.5, -3.5], [3.5, -3.5], [0, 0], [-3.5, 3.5], [3.5, 3.5]].map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.5" fill="#1f2937"/>`).join("")}
             </g>`;
     } else if (hq) {
-      const c = CATEGORIES[sp.cat];
-      s += `<circle cx="${f(x)}" cy="${f(y)}" r="14.5" fill="#fbf7ee" stroke="${shade(c.color, -.35)}" stroke-width="2.5" filter="url(#shadow)"/>`;
-      s += `<text x="${f(x)}" y="${f(y + 5.5)}" text-anchor="middle" font-size="15">${c.icon}</text>`;
+      const c = CATEGORIES[n.cat];
+      s += `<circle cx="${f(x)}" cy="${f(y)}" r="13.5" fill="#fbf7ee" stroke="${shade(c.color, -.35)}" stroke-width="2.5" filter="url(#shadow)"/>`;
+      s += `<text x="${f(x)}" y="${f(y + 5)}" text-anchor="middle" font-size="14">${c.icon}</text>`;
     }
   });
 
   // Hub
-  s += `<circle cx="${C}" cy="${C}" r="68" fill="rgba(0,0,0,.45)"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${HUB_R + 5}" fill="rgba(0,0,0,.45)"/>`;
   for (let k = 0; k < 6; k++) {
-    s += `<path d="${slicePath(C, C, 63, -120 + k * 60, -60 + k * 60)}" fill="url(#hg${k})" stroke="#0a2029" stroke-width="2.5"/>`;
-    const [x, y] = polar(43, -90 + k * 60);
-    s += `<text x="${f(x)}" y="${f(y + 6)}" text-anchor="middle" font-size="17">${CATEGORIES[k].icon}</text>`;
+    s += `<path d="${slicePath(C, C, HUB_R, -120 + k * 60, -60 + k * 60)}" fill="url(#hg${k})" stroke="#0a2029" stroke-width="2.5"/>`;
+    const [x, y] = polar(40, -90 + k * 60);
+    s += `<text x="${f(x)}" y="${f(y + 6)}" text-anchor="middle" font-size="16">${CATEGORIES[k].icon}</text>`;
   }
-  s += `<circle cx="${C}" cy="${C}" r="21" fill="url(#rim)" stroke="#0a2029" stroke-width="2.5"/>`;
-  s += `<text x="${C}" y="${C + 7.5}" text-anchor="middle" font-size="22" fill="#fff4c9">★</text>`;
+  s += `<circle cx="${C}" cy="${C}" r="18" fill="url(#rim)" stroke="#0a2029" stroke-width="2.5"/>`;
+  s += `<text x="${C}" y="${C + 7}" text-anchor="middle" font-size="20" fill="#fff4c9">★</text>`;
   return s;
+}
+
+function targetSVG(id) {
+  const n = NODES[id];
+  const attrs = `class="glow" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="3"`;
+  let shape;
+  if (n.kind === "hub") {
+    shape = `<circle cx="${C}" cy="${C}" r="${HUB_R + 4}" ${attrs}/>`;
+  } else if (n.kind === "spoke") {
+    const [x, y] = nodeXY(id);
+    shape = `<rect x="-12" y="-16" width="24" height="32" rx="6" transform="translate(${f(x)} ${f(y)}) rotate(${spokeAngle(n.k)})" ${attrs}/>`;
+  } else {
+    const a = ringAngle(n.i);
+    shape = `<path d="${arcSeg(R_IN - 9, R_OUT + 8, a - RING_HALF - 0.8, a + RING_HALF + 0.8)}" ${attrs}/>`;
+  }
+  return `<g class="target" data-i="${id}">${shape}</g>`;
 }
 
 function tokenSVG(p, cx, cy, r) {
@@ -787,7 +901,6 @@ $("svgDefs").innerHTML = buildDefs();
 const BOARD_STATIC = buildStaticBoard();
 $("logoSlices").innerHTML = CATEGORIES.map((c, k) =>
   `<path d="${slicePath(27, 27, 22, -120 + k * 60, -60 + k * 60)}" fill="${c.color}" stroke="#f6f1e7" stroke-width="1.5"/>`).join("");
-
 $("goalWedges").innerHTML = CATEGORIES.map(c =>
   `<span style="background:${c.color}">${c.icon} ${esc(c.name)}</span>`).join("");
 
@@ -829,25 +942,26 @@ $("startBtn").addEventListener("click", () => {
     if (r.cpu) { cpuN++; r.name = cpuCount > 1 ? `Computer ${cpuN}` : "Computer"; }
     else r.name = `Player ${i + 1}`;
   });
-  startGame(rows);
+  startGame(rows, $("answerMode").value);
 });
 
-function startGame(configs) {
+function startGame(configs, mode) {
   clearTimeout(cpuTimer);
   state = {
     players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
+    mode,               // "classic" | "mc"
     cur: 0,
-    phase: "roll",      // roll | rolling | move | moving | question | over
-    targets: [],
+    phase: "roll",      // roll | rolling | move | moving | pick | picked | question | over
+    dests: new Map(),
     roll: 0,
-    hubPlayer: null,
+    picker: null,
     decks: CATEGORIES.map(() => []),
-    status: "Roll the die to begin!"
+    status: "Everyone starts in the Hub. Roll the die to begin!"
   };
+  currentQ = null;
   $("setup").style.display = "none";
   $("game").style.display = "grid";
-  $("winOverlay").classList.remove("show");
-  $("qOverlay").classList.remove("show");
+  for (const o of ["winOverlay", "qOverlay", "pickOverlay"]) $(o).classList.remove("show");
   renderDie(6);
   render();
 }
@@ -856,12 +970,12 @@ $("newGameBtn").addEventListener("click", () => {
   if (state && state.phase !== "over" && !confirm("Start a new game? Current progress will be lost.")) return;
   clearTimeout(cpuTimer);
   state = null;
-  $("qOverlay").classList.remove("show");
+  for (const o of ["qOverlay", "pickOverlay"]) $(o).classList.remove("show");
   $("game").style.display = "none";
   $("setup").style.display = "block";
 });
 $("playAgainBtn").addEventListener("click", () => {
-  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })));
+  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })), state.mode);
 });
 
 // ---------- Rendering ----------
@@ -881,27 +995,17 @@ function renderDie(v) {
 
 function renderBoard() {
   let s = BOARD_STATIC;
+  if (state.phase === "move") for (const id of state.dests.keys()) s += targetSVG(id);
 
-  // Highlight the two spaces you can move to
-  if (state.phase === "move") {
-    state.targets.forEach(i => {
-      const a = spaceAngle(i);
-      s += `<g class="target" data-i="${i}">
-              <path class="glow" d="${arcSeg(R_IN - 10, R_OUT + 9, a - HALF - 1, a + HALF + 1)}" fill="rgba(255,255,255,.22)" stroke="#fff" stroke-width="3"/>
-            </g>`;
-    });
-  }
-
-  // Tokens, grouped by space (or the Hub) so they cluster instead of stacking
+  // Tokens, grouped by space so they cluster instead of stacking
   const groups = {};
-  state.players.forEach((p, i) => {
-    const key = state.hubPlayer === i ? "hub" : p.pos;
-    (groups[key] ||= []).push(i);
-  });
+  state.players.forEach((p, i) => (groups[p.pos] ||= []).push(i));
   let tokens = "", currentTok = "";
   for (const [key, ids] of Object.entries(groups)) {
-    const [bx, by] = key === "hub" ? [C, C] : polar(R_MID, spaceAngle(+key));
-    const n = ids.length, r = n === 1 ? 12.5 : 9.5, spread = n === 1 ? 0 : (n <= 3 ? 9 : 12);
+    const [bx, by] = nodeXY(+key);
+    const n = ids.length, hub = +key === 0;
+    const r = n === 1 ? 12.5 : hub ? 11 : 9.5;
+    const spread = n === 1 ? 0 : hub ? 24 : (n <= 3 ? 9 : 12);
     ids.forEach((pi, j) => {
       const ang = rad(-90 + j * 360 / n);
       const x = bx + spread * Math.cos(ang), y = by + spread * Math.sin(ang);
@@ -913,7 +1017,7 @@ function renderBoard() {
       if (pi === state.cur) currentTok = t; else tokens += t;
     });
   }
-  $("board").innerHTML = s + tokens + currentTok;
+  $("board").innerHTML = s + `<g style="pointer-events:none">${tokens}${currentTok}</g>`;
 }
 
 function renderPanel() {
@@ -924,17 +1028,8 @@ function renderPanel() {
 
   const rb = $("rollBtn");
   rb.textContent = p.cpu && state.phase !== "over" ? "🤖 Computer is playing…"
-    : p.wedges.size === 6 ? "Head to the Hub 🏁" : "Roll the die";
+    : p.wedges.size === 6 ? "Roll — reach the Hub! 🏁" : "Roll the die";
   rb.disabled = state.phase !== "roll" || !!p.cpu;
-
-  const db = $("dirButtons");
-  if (state.phase === "move" && !p.cpu) {
-    const [cw, ccw] = state.targets;
-    db.innerHTML = `<button class="btn ghost" data-t="${ccw}">↺ Counter-clockwise</button>
-                    <button class="btn ghost" data-t="${cw}">Clockwise ↻</button>`;
-  } else {
-    db.innerHTML = "";
-  }
 
   $("players").innerHTML = state.players.map((pl, i) => `
     <li class="${i === state.cur ? "current" : ""}" data-p="${i}">
@@ -989,16 +1084,8 @@ function confetti() {
 }
 
 // ---------- Turn flow ----------
-function rollOrHub() {
+function rollDie() {
   if (state.phase !== "roll") return;
-  const p = curPlayer();
-  if (p.wedges.size === 6) {
-    state.hubPlayer = state.cur;
-    state.status = `${displayName(p)} heads to the Hub for the final question!`;
-    renderBoard(); renderPanel();
-    askQuestion(Math.floor(Math.random() * 6), "final");
-    return;
-  }
   state.phase = "rolling";
   renderPanel();
   $("die").classList.add("rolling");
@@ -1012,47 +1099,99 @@ function rollOrHub() {
       $("die").classList.remove("rolling");
       const r = 1 + Math.floor(Math.random() * 6);
       renderDie(r);
+      const p = curPlayer();
       state.roll = r;
-      const pos = curPlayer().pos;
-      state.targets = [(pos + r) % N, (pos - r + N) % N];
+      state.dests = destinations(p.pos, r);
       state.phase = "move";
-      state.status = curPlayer().cpu
-        ? `${displayName(curPlayer())} rolled a <b>${r}</b> and is choosing a space…`
-        : `You rolled a <b>${r}</b>. Tap a glowing space to move there.`;
+      const hubReachable = state.dests.has(0);
+      state.status = p.cpu
+        ? `${displayName(p)} rolled a <b>${r}</b> and is choosing a space…`
+        : p.wedges.size === 6
+          ? `You rolled a <b>${r}</b>. ${hubReachable ? "You can reach the <b>Hub</b>!" : "Not enough to land in the Hub exactly — move closer."} Tap a glowing space.`
+          : `You rolled a <b>${r}</b>. Tap any glowing space — any direction, but no doubling back.`;
       render();
     }
   }, 70);
 }
 
-function moveTo(i) {
-  if (state.phase !== "move" || !state.targets.includes(i)) return;
-  const dir = i === state.targets[0] ? 1 : -1;
-  const steps = state.roll, s = state, p = curPlayer();
+function moveTo(id) {
+  if (state.phase !== "move" || !state.dests.has(id)) return;
+  const path = state.dests.get(id), s = state, p = curPlayer();
   state.phase = "moving";
-  state.targets = [];
+  state.dests = new Map();
   renderPanel();
   let k = 0;
   const iv = setInterval(() => {
     if (state !== s) { clearInterval(iv); return; }
-    p.pos = (p.pos + dir + N) % N;
+    p.pos = path[k];
     renderBoard();
-    if (++k >= steps) { clearInterval(iv); land(i); }
+    if (++k >= path.length) { clearInterval(iv); land(id); }
   }, 150);
 }
 
-function land(i) {
-  const sp = SPACES[i];
-  if (sp.type === "roll") {
+function land(id) {
+  const n = NODES[id], p = curPlayer();
+  if (n.type === "roll") {
     state.phase = "roll";
-    state.status = `🎲 Free roll! ${displayName(curPlayer())} goes again.`;
-    showToast("🎲 Free roll!");
+    state.status = `🎲 Roll again! ${displayName(p)} goes again.`;
+    showToast("🎲 Roll again!");
     render();
+  } else if (n.type === "hub") {
+    render();
+    openPicker(p.wedges.size === 6 ? "opponents" : "self");
   } else {
     render();
-    askQuestion(sp.cat, sp.type === "hq" ? "hq" : "normal");
+    askQuestion(n.cat, n.type === "hq" ? "hq" : "normal");
   }
 }
 
+// ---------- Category picker (Hub) ----------
+function pickerIsCpu() {
+  if (state.picker === "self") return !!curPlayer().cpu;
+  return state.players.every((pl, i) => i === state.cur || pl.cpu);
+}
+
+function openPicker(who) {
+  const p = curPlayer();
+  state.picker = who;
+  if (who === "opponents" && state.players.length === 1) {
+    const cat = Math.floor(Math.random() * 6);
+    showToast(`🏁 Final category: ${CATEGORIES[cat].icon} ${esc(CATEGORIES[cat].name)}`);
+    askQuestion(cat, "final");
+    return;
+  }
+  state.phase = "pick";
+  state.status = who === "self"
+    ? `${displayName(p)} landed in the Hub and picks a category.`
+    : `${displayName(p)} made it to the Hub with all six wedges! Opponents pick the final category.`;
+  renderPanel();
+  const auto = pickerIsCpu();
+  $("pickTitle").textContent = who === "self" ? `${p.name}, choose any category` : `Final question for ${p.name}!`;
+  $("pickSub").textContent = who === "self" ? "YOU LANDED IN THE HUB" : "OPPONENTS CHOOSE THE CATEGORY";
+  $("pickNote").textContent = auto
+    ? (who === "self" ? `🤖 ${p.name} is choosing…` : "🤖 The computer opponents are choosing…")
+    : (who === "self" ? "No wedge in the Hub — just a question in the category you pick." : "Pick the category you think will be hardest for them!");
+  $("pickGrid").innerHTML = CATEGORIES.map((c, k) =>
+    `<button data-k="${k}" ${auto ? "disabled" : ""} style="background:linear-gradient(135deg, ${shade(c.color, .05)}, ${shade(c.color, -.35)})"><span>${c.icon}</span>${esc(c.name)}</button>`).join("");
+  $("pickOverlay").classList.add("show");
+  cpuStep();
+}
+
+function pickCategory(k) {
+  if (state.phase !== "pick") return;
+  state.phase = "picked";
+  const btns = [...$("pickGrid").children];
+  btns.forEach(b => b.disabled = true);
+  btns[k].classList.add("chosen");
+  const s = state, mode = state.picker === "opponents" ? "final" : "normal";
+  setTimeout(() => {
+    if (state !== s) return;
+    $("pickOverlay").classList.remove("show");
+    askQuestion(k, mode);
+  }, 650);
+}
+
+// ---------- Questions ----------
 function drawQuestion(cat) {
   const deck = state.decks[cat];
   if (!deck.length) deck.push(...shuffle(CATEGORIES[cat].questions.map((_, i) => i)));
@@ -1064,29 +1203,49 @@ function askQuestion(cat, mode) {
   renderPanel();
   const [q, correct, ...wrong] = drawQuestion(cat);
   const choices = shuffle([correct, ...wrong]);
-  currentQ = { cat, mode, correct, choices, answered: false };
+  currentQ = { cat, mode, correct, choices, answered: false, revealed: false };
 
   const c = CATEGORIES[cat], p = curPlayer();
   $("qHead").style.background = `linear-gradient(135deg, ${shade(c.color, .08)}, ${shade(c.color, -.4)})`;
   $("qIcon").textContent = c.icon;
   $("qCat").textContent = c.name;
-  const tag = mode === "final" ? "🏁 FINAL QUESTION — ANSWER TO WIN"
+  $("qTag").textContent = mode === "final" ? "🏁 FINAL QUESTION — ANSWER TO WIN"
     : mode === "hq" ? (p.wedges.has(cat) ? "★ WEDGE SPACE (ALREADY EARNED)" : "★ WEDGE QUESTION")
     : `${p.cpu ? "🤖 " : ""}${p.name.toUpperCase()}'S QUESTION`;
-  $("qTag").textContent = tag;
   $("qText").textContent = q;
-  $("qChoices").innerHTML = choices.map((ch, i) =>
-    `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
   $("qFeedback").innerHTML = p.cpu ? `<span style="color:var(--muted)">🤖 ${esc(p.name)} is thinking…</span>` : "";
   $("qContinue").style.display = "none";
+  renderChoices();
   const card = $("qCard");
   card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
   $("qOverlay").classList.add("show");
   cpuStep();
 }
 
+function renderChoices() {
+  const p = curPlayer(), box = $("qChoices"), q = currentQ;
+  if (state.mode === "mc") {
+    box.innerHTML = q.choices.map((ch, i) =>
+      `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
+    return;
+  }
+  if (!q.revealed) {
+    box.innerHTML = p.cpu ? "" :
+      `<p class="say-hint">Say your answer out loud, then reveal it.</p>
+       <button class="btn" data-act="reveal" style="width:100%">Show answer</button>`;
+  } else {
+    box.innerHTML = `<div class="answer-box"><small>ANSWER</small>${esc(q.correct)}</div>` +
+      (p.cpu || q.answered ? "" :
+        `<div class="judge">
+           <button class="btn good" data-act="right">✓ Got it right</button>
+           <button class="btn bad" data-act="wrong">✗ Got it wrong</button>
+         </div>`);
+  }
+}
+
+// Multiple-choice answer
 function answer(i) {
-  if (!currentQ || currentQ.answered) return;
+  if (!currentQ || currentQ.answered || state.mode !== "mc") return;
   currentQ.answered = true;
   const ok = currentQ.choices[i] === currentQ.correct;
   currentQ.ok = ok;
@@ -1107,6 +1266,19 @@ function answer(i) {
   }
 }
 
+// Classic: reveal, then players mark it right or wrong
+function reveal() {
+  if (!currentQ || currentQ.revealed || state.mode !== "classic") return;
+  currentQ.revealed = true;
+  renderChoices();
+}
+function judge(ok) {
+  if (!currentQ || !currentQ.revealed || currentQ.answered) return;
+  currentQ.answered = true;
+  currentQ.ok = ok;
+  resolveQuestion();
+}
+
 function resolveQuestion() {
   if (!currentQ || !currentQ.answered) return;
   $("qOverlay").classList.remove("show");
@@ -1116,13 +1288,13 @@ function resolveQuestion() {
 
   if (ok && mode === "final") {
     state.phase = "over";
+    state.status = `🏆 ${displayName(p)} wins!`;
     render();
     $("winText").textContent = `${p.name} wins!`;
     $("winOverlay").classList.add("show");
     confetti();
     return;
   }
-  if (mode === "final") state.hubPlayer = null;   // token returns to the ring
 
   let bumped = null;
   if (ok) {
@@ -1133,7 +1305,7 @@ function resolveQuestion() {
       const c = CATEGORIES[cat];
       showToast(`🧀 ${esc(p.name)} earned the ${c.icon} ${esc(c.name)} wedge!`);
       msg = `🧀 Earned the <b style="color:${c.color}">${esc(c.name)}</b> wedge!`;
-      msg += p.wedges.size === 6 ? " That's all six — head to the Hub!" : " Roll again.";
+      msg += p.wedges.size === 6 ? " That's all six — now land in the Hub by exact count!" : " Roll again.";
     }
     state.status = msg;
   } else {
@@ -1142,7 +1314,7 @@ function resolveQuestion() {
     state.status = state.players.length > 1
       ? `${esc(prev)} missed. ${displayName(curPlayer())}, you're up!`
       : "Missed that one. Roll again.";
-    if (mode === "final") state.status = `So close, ${esc(prev)}! ` + state.status;
+    if (mode === "final") state.status = `So close, ${esc(prev)}! You'll need to leave the Hub and come back. ` + state.status;
   }
   state.phase = "roll";
   render();
@@ -1160,8 +1332,13 @@ function cpuSchedule(fn, ms) {
 }
 
 function cpuStep() {
-  if (!state || state.phase === "over" || !isCpuTurn()) return;
-  if (state.phase === "roll") cpuSchedule(rollOrHub, 1000);
+  if (!state || state.phase === "over") return;
+  if (state.phase === "pick") {
+    if (pickerIsCpu()) cpuSchedule(() => pickCategory(Math.floor(Math.random() * 6)), 1300);
+    return;
+  }
+  if (!isCpuTurn()) return;
+  if (state.phase === "roll") cpuSchedule(rollDie, 1000);
   else if (state.phase === "move") cpuSchedule(() => moveTo(cpuChooseSpace()), 1100);
   else if (state.phase === "question" && currentQ) {
     if (!currentQ.answered) cpuSchedule(cpuAnswer, 1400 + Math.random() * 1200);
@@ -1169,63 +1346,86 @@ function cpuStep() {
   }
 }
 
-// Prefer a wedge space it still needs, then a free-roll space, then whatever is closest to a needed wedge.
+// Head for the Hub once it has all six wedges; otherwise go for a missing wedge space.
 function cpuChooseSpace() {
-  const p = curPlayer();
-  const scored = state.targets.map(i => {
-    const sp = SPACES[i];
-    if (sp.type === "hq" && !p.wedges.has(sp.cat)) return { i, score: 1000 };
-    let nearest = N;
-    for (let k = 0; k < 6; k++) {
-      if (p.wedges.has(k)) continue;
-      const hq = k * 6;
-      nearest = Math.min(nearest, (i - hq + N) % N, (hq - i + N) % N);
+  const p = curPlayer(), all = p.wedges.size === 6;
+  const goals = all ? [0] : [0, 1, 2, 3, 4, 5].filter(k => !p.wedges.has(k)).map(HQ_ID);
+  let best = null, bestScore = -Infinity;
+  for (const id of state.dests.keys()) {
+    const n = NODES[id];
+    let score;
+    if (goals.includes(id)) score = 1000;
+    else {
+      score = -Math.min(...goals.map(g => DIST[id][g]));
+      if (n.type === "roll") score += 3;
+      if (n.type === "hub") score += 1;
     }
-    return { i, score: (sp.type === "roll" ? 20 : 0) - nearest + Math.random() };
-  });
-  scored.sort((a, b) => b.score - a.score);
-  return scored[0].i;
+    score += Math.random() * 0.5;
+    if (score > bestScore) { bestScore = score; best = id; }
+  }
+  return best;
 }
 
 function cpuAnswer() {
-  const accuracy = CPU_LEVELS[curPlayer().cpu] ?? 0.65;
+  const p = curPlayer();
+  const accuracy = CPU_LEVELS[p.cpu] ?? 0.65;
   const correctIdx = currentQ.choices.indexOf(currentQ.correct);
   let pick = correctIdx;
   if (Math.random() >= accuracy) {
     const wrongIdx = currentQ.choices.map((_, i) => i).filter(i => i !== correctIdx);
     pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
   }
-  answer(pick);
+  if (state.mode === "mc") { answer(pick); return; }
+  // Classic: the computer "says" its answer, then the real answer is revealed
+  const ok = pick === correctIdx;
+  currentQ.revealed = true;
+  currentQ.answered = true;
+  currentQ.ok = ok;
+  renderChoices();
+  $("qFeedback").innerHTML = `🤖 ${esc(p.name)} says: “${esc(currentQ.choices[pick])}” — ` +
+    (ok ? `<span style="color:var(--good)">✔ correct!</span>` : `<span style="color:var(--bad)">✘ wrong</span>`);
+  cpuStep();
 }
 
 // ---------- Events ----------
-$("rollBtn").addEventListener("click", () => { if (!isCpuTurn()) rollOrHub(); });
+$("rollBtn").addEventListener("click", () => { if (!isCpuTurn()) rollDie(); });
 $("board").addEventListener("click", e => {
   if (isCpuTurn()) return;
   const g = e.target.closest("g[data-i]");
   if (g) moveTo(+g.dataset.i);
 });
-$("dirButtons").addEventListener("click", e => {
-  if (isCpuTurn()) return;
-  const b = e.target.closest("button[data-t]");
-  if (b) moveTo(+b.dataset.t);
+$("pickGrid").addEventListener("click", e => {
+  if (!state || pickerIsCpu()) return;
+  const b = e.target.closest("button[data-k]");
+  if (b) pickCategory(+b.dataset.k);
 });
 $("qChoices").addEventListener("click", e => {
   if (isCpuTurn()) return;
-  const b = e.target.closest("button[data-c]");
-  if (b) answer(+b.dataset.c);
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.c !== undefined) answer(+b.dataset.c);
+  else if (b.dataset.act === "reveal") reveal();
+  else if (b.dataset.act === "right") judge(true);
+  else if (b.dataset.act === "wrong") judge(false);
 });
 $("qContinue").addEventListener("click", resolveQuestion);
 
 document.addEventListener("keydown", e => {
-  if (!state || e.target.tagName === "INPUT" || isCpuTurn()) return;
+  if (!state || e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || isCpuTurn()) return;
   const k = e.key.toLowerCase();
-  if (state.phase === "question") {
-    const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
-    if (k.length === 1 && idx >= 0) answer(idx);
-    else if (e.key === "Enter" && currentQ && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
+  if (state.phase === "question" && currentQ) {
+    if (state.mode === "mc") {
+      const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
+      if (k.length === 1 && idx >= 0) answer(idx);
+      else if (e.key === "Enter" && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
+    } else if (!currentQ.revealed) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); reveal(); }
+    } else if (!currentQ.answered) {
+      if (k === "y" || k === "1") judge(true);
+      else if (k === "n" || k === "2") judge(false);
+    }
   } else if (state.phase === "roll" && k === "r") {
-    rollOrHub();
+    rollDie();
   }
 });
 </script>
