@@ -72,6 +72,9 @@
     background: var(--bg); color: var(--ink);
   }
   .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .name-row input { flex: 1; min-width: 0; }
+  #setup .name-row select { width: auto; flex: none; }
+  .hint { color: var(--muted); font-size: .88rem; margin: 6px 0 0; }
   .swatch { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid rgba(0,0,0,.4); }
   #startBtn { width: 100%; margin-top: 16px; padding: 14px; font-size: 1.05rem; }
 
@@ -173,6 +176,7 @@
     </select>
     <label>Player / team names</label>
     <div id="nameInputs"></div>
+    <p class="hint">Set any player to 🤖 Computer to play against the machine. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
     <button id="startBtn">Start Game</button>
   </div>
 </section>
@@ -204,6 +208,7 @@
         <li>The big ★ spaces are <b>wedge spaces</b>. A correct answer there earns that category's wedge.</li>
         <li>🎲 spaces give you a free roll.</li>
         <li>Once you have all six wedges, head to the Hub and answer a final question to win.</li>
+        <li>🤖 Computer players take their turns automatically.</li>
         <li>Keyboard: <b>1–4</b> to answer, <b>Enter</b> to continue, <b>R</b> to roll.</li>
       </ul>
     </details>
@@ -369,6 +374,10 @@ const PLAYER_COLORS = ["#0f172a", "#f8fafc", "#facc15", "#06b6d4", "#92400e", "#
 const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 const RING_R = 170, TOKEN_R = 9;
 
+// Computer difficulty: chance of answering a question correctly
+const CPU_LEVELS = { easy: 0.45, medium: 0.65, hard: 0.85 };
+const PLAYER_TYPES = [["human", "👤 Human"], ["easy", "🤖 Easy"], ["medium", "🤖 Medium"], ["hard", "🤖 Hard"]];
+
 // ---------- Build the ring: 36 spaces, a wedge (HQ) space every 6th ----------
 const SPACES = [];
 for (let k = 0; k < 6; k++) {
@@ -420,25 +429,43 @@ let state = null;
 // ---------- Setup screen ----------
 function renderNameInputs() {
   const n = +$("playerCount").value;
-  const old = [...document.querySelectorAll("#nameInputs input")].map(i => i.value);
-  $("nameInputs").innerHTML = Array.from({ length: n }, (_, i) => `
+  const old = [...document.querySelectorAll("#nameInputs .name-row")].map(r => ({
+    name: r.querySelector("input").value, type: r.querySelector("select").value
+  }));
+  $("nameInputs").innerHTML = Array.from({ length: n }, (_, i) => {
+    const type = old[i] ? old[i].type : (i === 1 ? "medium" : "human");
+    return `
     <div class="name-row">
       <span class="swatch" style="background:${PLAYER_COLORS[i]}"></span>
-      <input type="text" maxlength="20" placeholder="Player ${i + 1}" value="${esc(old[i] || "")}">
-    </div>`).join("");
+      <input type="text" maxlength="20" placeholder="Player ${i + 1}" value="${esc(old[i] ? old[i].name : "")}">
+      <select aria-label="Player ${i + 1} type">
+        ${PLAYER_TYPES.map(([v, label]) => `<option value="${v}"${v === type ? " selected" : ""}>${label}</option>`).join("")}
+      </select>
+    </div>`;
+  }).join("");
 }
 $("playerCount").addEventListener("change", renderNameInputs);
 renderNameInputs();
 
 $("startBtn").addEventListener("click", () => {
-  const names = [...document.querySelectorAll("#nameInputs input")]
-    .map((inp, i) => inp.value.trim() || `Player ${i + 1}`);
-  startGame(names);
+  const rows = [...document.querySelectorAll("#nameInputs .name-row")].map(r => ({
+    name: r.querySelector("input").value.trim(),
+    cpu: r.querySelector("select").value === "human" ? null : r.querySelector("select").value
+  }));
+  const cpuCount = rows.filter(r => r.cpu).length;
+  let cpuN = 0;
+  rows.forEach((r, i) => {
+    if (r.name) return;
+    if (r.cpu) { cpuN++; r.name = cpuCount > 1 ? `Computer ${cpuN}` : "Computer"; }
+    else r.name = `Player ${i + 1}`;
+  });
+  startGame(rows);
 });
 
-function startGame(names) {
+function startGame(configs) {
+  clearTimeout(cpuTimer);
   state = {
-    players: names.map((name, i) => ({ name, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
+    players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
     cur: 0,
     phase: "roll",      // roll | rolling | move | question | over
     targets: [],
@@ -453,13 +480,15 @@ function startGame(names) {
 
 $("newGameBtn").addEventListener("click", () => {
   if (state && state.phase !== "over" && !confirm("Start a new game? Current progress will be lost.")) return;
+  clearTimeout(cpuTimer);
   state = null;
+  $("qOverlay").classList.remove("show");
   $("game").style.display = "none";
   $("setup").style.display = "block";
   $("die").textContent = "🎲";
 });
 $("playAgainBtn").addEventListener("click", () => {
-  startGame(state.players.map(p => p.name));
+  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })));
   $("die").textContent = "🎲";
 });
 
@@ -467,7 +496,9 @@ $("playAgainBtn").addEventListener("click", () => {
 function render() {
   renderBoard();
   renderPanel();
+  cpuStep();
 }
+const displayName = p => (p.cpu ? "🤖 " : "") + esc(p.name);
 
 function renderBoard() {
   let s = "";
@@ -484,7 +515,7 @@ function renderBoard() {
   // Spaces
   SPACES.forEach((sp, i) => {
     const [x, y] = polar(RING_R, spaceAngle(i));
-    const isT = state.phase === "move" && state.targets.includes(i);
+    const isT = state.phase === "move" && state.targets.includes(i) && !isCpuTurn();
     const r = sp.type === "hq" ? 17 : 12;
     let g = `<g data-i="${i}" class="${isT ? "space-target" : ""}">`;
     if (isT) g += `<circle class="glow" cx="${x}" cy="${y}" r="${r + 6}" fill="none" stroke="var(--ink)" stroke-width="3"/>`;
@@ -520,16 +551,16 @@ function renderBoard() {
 function renderPanel() {
   const p = state.players[state.cur];
   const allWedges = p.wedges.size === 6;
-  $("turnBanner").innerHTML = `${miniToken(p).replace('<svg', '<svg style="vertical-align:middle;margin-right:6px"')}${esc(p.name)}'s turn`;
+  $("turnBanner").innerHTML = `${miniToken(p).replace('<svg', '<svg style="vertical-align:middle;margin-right:6px"')}${displayName(p)}'s turn`;
   $("status").innerHTML = state.status;
 
   const rb = $("rollBtn");
-  rb.textContent = allWedges ? "Head to the Hub 🏁" : "Roll";
-  rb.disabled = state.phase !== "roll";
+  rb.textContent = p.cpu && state.phase !== "over" ? "🤖 Computer is playing…" : allWedges ? "Head to the Hub 🏁" : "Roll";
+  rb.disabled = state.phase !== "roll" || !!p.cpu;
 
   // Direction buttons as an alternative to tapping the board
   const db = $("dirButtons");
-  if (state.phase === "move") {
+  if (state.phase === "move" && !p.cpu) {
     const [cw, ccw] = state.targets;
     db.innerHTML = `<button class="secondary" data-t="${ccw}">↺ Counter-clockwise</button>` +
       (cw !== ccw ? `<button class="secondary" data-t="${cw}">Clockwise ↻</button>` : "");
@@ -540,7 +571,7 @@ function renderPanel() {
   $("players").innerHTML = state.players.map((pl, i) => `
     <li class="${i === state.cur ? "current" : ""}">
       ${miniToken(pl)}
-      <span class="pname">${esc(pl.name)}</span>
+      <span class="pname">${displayName(pl)}</span>
       <span class="pcount">${pl.wedges.size}/6</span>
     </li>`).join("");
 
@@ -569,7 +600,9 @@ function rollOrHub() {
       const pos = curPlayer().pos;
       state.targets = [(pos + r) % N, (pos - r + N) % N];
       state.phase = "move";
-      state.status = `You rolled a <b>${r}</b>. Tap a glowing space to move there.`;
+      state.status = curPlayer().cpu
+        ? `${displayName(curPlayer())} rolled a <b>${r}</b> and is choosing a space…`
+        : `You rolled a <b>${r}</b>. Tap a glowing space to move there.`;
       render();
     }
   }, 60);
@@ -615,9 +648,10 @@ function askQuestion(cat, mode) {
   $("qText").textContent = q;
   $("qChoices").innerHTML = choices.map((ch, i) =>
     `<button data-c="${i}"><span class="key">${i + 1}</span>${esc(ch)}</button>`).join("");
-  $("qFeedback").textContent = "";
+  $("qFeedback").innerHTML = p.cpu ? `<span style="color:var(--muted)">🤖 ${esc(p.name)} is thinking…</span>` : "";
   $("qContinue").style.display = "none";
   $("qOverlay").classList.add("show");
+  cpuStep();
 }
 
 function answer(i) {
@@ -632,11 +666,16 @@ function answer(i) {
     if (currentQ.choices[j] === currentQ.correct) b.classList.add("correct");
     else if (j === i) b.classList.add("wrong");
   });
+  const who = curPlayer().cpu ? `${esc(curPlayer().name)} got it right! ` : "";
   $("qFeedback").innerHTML = ok
-    ? `<span style="color:var(--good)">✔ Correct!</span>`
-    : `<span style="color:var(--bad)">✘ The answer was ${esc(currentQ.correct)}.</span>`;
-  $("qContinue").style.display = "block";
-  $("qContinue").focus();
+    ? `<span style="color:var(--good)">✔ ${who || "Correct!"}</span>`
+    : `<span style="color:var(--bad)">✘ ${curPlayer().cpu ? esc(curPlayer().name) + " missed. " : ""}The answer was ${esc(currentQ.correct)}.</span>`;
+  if (curPlayer().cpu) {
+    cpuStep();
+  } else {
+    $("qContinue").style.display = "block";
+    $("qContinue").focus();
+  }
 }
 
 function resolveQuestion() {
@@ -674,24 +713,77 @@ function resolveQuestion() {
   render();
 }
 
+// ---------- Computer player ----------
+let cpuTimer = null;
+function isCpuTurn() { return !!(state && curPlayer().cpu); }
+
+function cpuSchedule(fn, ms) {
+  clearTimeout(cpuTimer);
+  const s = state;
+  cpuTimer = setTimeout(() => { cpuTimer = null; if (state === s) fn(); }, ms);
+}
+
+// Decide what the computer should do next, based on the current phase.
+function cpuStep() {
+  if (!state || state.phase === "over" || !isCpuTurn()) return;
+  if (state.phase === "roll") cpuSchedule(rollOrHub, 1000);
+  else if (state.phase === "move") cpuSchedule(() => moveTo(cpuChooseSpace()), 1100);
+  else if (state.phase === "question" && currentQ) {
+    if (!currentQ.answered) cpuSchedule(cpuAnswer, 1400 + Math.random() * 1200);
+    else cpuSchedule(resolveQuestion, 1900);
+  }
+}
+
+// Prefer a wedge space it still needs, then a free-roll space, then whatever is closest to a needed wedge.
+function cpuChooseSpace() {
+  const p = curPlayer();
+  const scored = state.targets.map(i => {
+    const sp = SPACES[i];
+    if (sp.type === "hq" && !p.wedges.has(sp.cat)) return { i, score: 1000 };
+    let nearest = N;
+    for (let k = 0; k < 6; k++) {
+      if (p.wedges.has(k)) continue;
+      const hq = k * 6;
+      nearest = Math.min(nearest, (i - hq + N) % N, (hq - i + N) % N);
+    }
+    return { i, score: (sp.type === "roll" ? 20 : 0) - nearest + Math.random() };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0].i;
+}
+
+function cpuAnswer() {
+  const accuracy = CPU_LEVELS[curPlayer().cpu] ?? 0.65;
+  const correctIdx = currentQ.choices.indexOf(currentQ.correct);
+  let pick = correctIdx;
+  if (Math.random() >= accuracy) {
+    const wrongIdx = currentQ.choices.map((_, i) => i).filter(i => i !== correctIdx);
+    pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
+  }
+  answer(pick);
+}
+
 // ---------- Events ----------
-$("rollBtn").addEventListener("click", rollOrHub);
+$("rollBtn").addEventListener("click", () => { if (!isCpuTurn()) rollOrHub(); });
 $("board").addEventListener("click", e => {
+  if (isCpuTurn()) return;
   const g = e.target.closest("g[data-i]");
   if (g) moveTo(+g.dataset.i);
 });
 $("dirButtons").addEventListener("click", e => {
+  if (isCpuTurn()) return;
   const b = e.target.closest("button[data-t]");
   if (b) moveTo(+b.dataset.t);
 });
 $("qChoices").addEventListener("click", e => {
+  if (isCpuTurn()) return;
   const b = e.target.closest("button[data-c]");
   if (b) answer(+b.dataset.c);
 });
 $("qContinue").addEventListener("click", resolveQuestion);
 
 document.addEventListener("keydown", e => {
-  if (!state || e.target.tagName === "INPUT") return;
+  if (!state || e.target.tagName === "INPUT" || isCpuTurn()) return;
   if (state.phase === "question") {
     if (["1", "2", "3", "4"].includes(e.key)) answer(+e.key - 1);
     else if (e.key === "Enter" && currentQ && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
