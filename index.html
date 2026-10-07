@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedge Quest</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --panel: #ffffff;
+    --ink: #1f2328;
+    --muted: #6b7280;
+    --line: #ddd6c6;
+    --good: #16a34a;
+    --bad: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b;
+      --panel: #1f232b;
+      --ink: #eef0f3;
+      --muted: #9aa3af;
+      --line: #313743;
+      --good: #22c55e;
+      --bad: #f87171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 18px 16px 4px;
+  }
+  header h1 { margin: 0; font-size: 1.9rem; letter-spacing: .5px; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+
+  button {
+    font: inherit;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    transition: transform .08s, opacity .2s;
+  }
+  button:active { transform: scale(.97); }
+  button:disabled { opacity: .4; cursor: default; transform: none; }
+  button.secondary { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.06);
+  }
+
+  /* ---------- Setup ---------- */
+  #setup { max-width: 440px; margin: 24px auto; padding: 0 16px; }
+  #setup label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  #setup select, #setup input {
+    width: 100%; padding: 10px 12px; font: inherit;
+    border-radius: 10px; border: 2px solid var(--line);
+    background: var(--bg); color: var(--ink);
+  }
+  .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .swatch { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid rgba(0,0,0,.4); }
+  #startBtn { width: 100%; margin-top: 16px; padding: 14px; font-size: 1.05rem; }
+
+  /* ---------- Game ---------- */
+  #game {
+    display: none;
+    max-width: 1000px; margin: 12px auto 30px; padding: 0 16px;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (max-width: 760px) { #game { grid-template-columns: 1fr; } }
+  #boardWrap { padding: 10px; }
+  #board { width: 100%; height: auto; display: block; }
+  #board .space-target { cursor: pointer; }
+  #board .glow { animation: pulse 1s ease-in-out infinite; }
+  #board .active-ring { animation: spin 6s linear infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes pulse { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .turn-banner { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+  #status { color: var(--muted); min-height: 2.6em; margin: 0 0 12px; }
+  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #die {
+    font-size: 54px; line-height: 1; width: 64px; text-align: center;
+    user-select: none;
+  }
+  #rollBtn { flex: 1; padding: 14px; font-size: 1.05rem; }
+  .dir-buttons { display: flex; gap: 8px; margin-top: 10px; }
+  .dir-buttons button { flex: 1; }
+
+  #players { list-style: none; padding: 0; margin: 16px 0 0; }
+  #players li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 10px; margin-bottom: 4px;
+    border: 2px solid transparent;
+  }
+  #players li.current { border-color: var(--ink); }
+  #players .pname { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #players .pcount { color: var(--muted); font-size: .9rem; }
+
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin-top: 14px; font-size: .9rem; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+
+  details { margin-top: 14px; color: var(--muted); font-size: .92rem; }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  details ul { padding-left: 18px; margin: 8px 0 0; }
+
+  /* ---------- Modal ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px; z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .modal { width: 100%; max-width: 520px; animation: pop .18s ease-out; }
+  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+  .badge {
+    display: inline-block; color: #fff; font-weight: 700; font-size: .85rem;
+    padding: 5px 12px; border-radius: 999px; letter-spacing: .3px;
+  }
+  .qtag { margin-left: 8px; font-weight: 700; font-size: .85rem; color: var(--muted); }
+  #qText { font-size: 1.25rem; font-weight: 600; margin: 14px 0 16px; line-height: 1.35; }
+  #qChoices { display: grid; gap: 10px; }
+  #qChoices button {
+    text-align: left; background: var(--bg); color: var(--ink);
+    border: 2px solid var(--line); font-weight: 500; padding: 12px 14px;
+  }
+  #qChoices button .key { color: var(--muted); font-weight: 700; margin-right: 8px; }
+  #qChoices button.correct { border-color: var(--good); background: color-mix(in srgb, var(--good) 18%, var(--panel)); }
+  #qChoices button.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 18%, var(--panel)); }
+  #qFeedback { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; }
+  #qContinue { width: 100%; margin-top: 10px; display: none; }
+
+  #winModal { text-align: center; }
+  #winModal h2 { font-size: 2rem; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧀 Wedge Quest</h1>
+  <p>Answer your way around the ring and collect all six wedges.</p>
+</header>
+
+<!-- ================= SETUP ================= -->
+<section id="setup">
+  <div class="card">
+    <label for="playerCount">Number of players</label>
+    <select id="playerCount">
+      <option value="1">1 player</option>
+      <option value="2" selected>2 players</option>
+      <option value="3">3 players</option>
+      <option value="4">4 players</option>
+      <option value="5">5 players</option>
+      <option value="6">6 players</option>
+    </select>
+    <label>Player / team names</label>
+    <div id="nameInputs"></div>
+    <button id="startBtn">Start Game</button>
+  </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<main id="game">
+  <div class="card" id="boardWrap">
+    <svg id="board" viewBox="0 0 400 400" aria-label="Game board"></svg>
+  </div>
+
+  <div class="card">
+    <div class="turn-banner" id="turnBanner"></div>
+    <p id="status"></p>
+    <div class="controls">
+      <div id="die">🎲</div>
+      <button id="rollBtn">Roll</button>
+    </div>
+    <div class="dir-buttons" id="dirButtons"></div>
+
+    <ul id="players"></ul>
+
+    <div class="legend" id="legend"></div>
+
+    <details>
+      <summary>How to play</summary>
+      <ul>
+        <li>Roll, then tap one of the two glowing spaces (clockwise or counter-clockwise).</li>
+        <li>Answer a question from that space's category. Get it right and you roll again; miss it and the turn passes.</li>
+        <li>The big ★ spaces are <b>wedge spaces</b>. A correct answer there earns that category's wedge.</li>
+        <li>🎲 spaces give you a free roll.</li>
+        <li>Once you have all six wedges, head to the Hub and answer a final question to win.</li>
+        <li>Keyboard: <b>1–4</b> to answer, <b>Enter</b> to continue, <b>R</b> to roll.</li>
+      </ul>
+    </details>
+    <div style="margin-top:14px">
+      <button class="secondary" id="newGameBtn">New Game</button>
+    </div>
+  </div>
+</main>
+
+<!-- ================= QUESTION MODAL ================= -->
+<div class="overlay" id="qOverlay">
+  <div class="card modal">
+    <span class="badge" id="qBadge"></span><span class="qtag" id="qTag"></span>
+    <div id="qText"></div>
+    <div id="qChoices"></div>
+    <div id="qFeedback"></div>
+    <button id="qContinue">Continue</button>
+  </div>
+</div>
+
+<!-- ================= WIN MODAL ================= -->
+<div class="overlay" id="winOverlay">
+  <div class="card modal" id="winModal">
+    <div style="font-size:64px">🏆</div>
+    <h2 id="winText"></h2>
+    <p style="color:var(--muted)">All six wedges and a correct final answer. Well played!</p>
+    <button id="playAgainBtn">Play Again</button>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   QUESTIONS — edit freely!
+   Format: ["Question", "Correct answer", "Wrong 1", "Wrong 2", "Wrong 3"]
+   Answer order is shuffled automatically every time.
+   ===================================================================== */
+const CATEGORIES = [
+  {
+    name: "Geography", color: "#3b82f6",
+    questions: [
+      ["What is the capital of Australia?", "Canberra", "Sydney", "Melbourne", "Perth"],
+      ["What is the longest river in South America?", "Amazon", "Paraná", "Orinoco", "Magdalena"],
+      ["Which is the largest hot desert in the world?", "Sahara", "Gobi", "Kalahari", "Mojave"],
+      ["Mount Kilimanjaro is in which country?", "Tanzania", "Kenya", "Uganda", "Ethiopia"],
+      ["What is the smallest country in the world by area?", "Vatican City", "Monaco", "San Marino", "Liechtenstein"],
+      ["Which U.S. state has the longest coastline?", "Alaska", "Florida", "California", "Hawaii"],
+      ["What is the capital of Canada?", "Ottawa", "Toronto", "Montreal", "Vancouver"],
+      ["The Strait of Gibraltar separates Spain from which country?", "Morocco", "Algeria", "Portugal", "Tunisia"],
+      ["Which is the largest ocean on Earth?", "Pacific", "Atlantic", "Indian", "Arctic"],
+      ["Lake Titicaca sits on the border of Peru and which country?", "Bolivia", "Chile", "Ecuador", "Brazil"],
+      ["The Great Barrier Reef lies off the coast of which Australian state?", "Queensland", "New South Wales", "Western Australia", "Victoria"],
+      ["What is the capital of Brazil?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"],
+      ["Which river flows through Baghdad?", "Tigris", "Euphrates", "Jordan", "Nile"],
+      ["Which continent has the most countries?", "Africa", "Asia", "Europe", "South America"],
+      ["What is the tallest mountain in the world above sea level?", "Mount Everest", "K2", "Kangchenjunga", "Denali"]
+    ]
+  },
+  {
+    name: "History", color: "#f59e0b",
+    questions: [
+      ["In what year did the Berlin Wall fall?", "1989", "1987", "1991", "1985"],
+      ["Who was the first U.S. president to live in the White House?", "John Adams", "George Washington", "Thomas Jefferson", "James Madison"],
+      ["Which ancient wonder stood in Alexandria, Egypt?", "The Lighthouse (Pharos)", "The Hanging Gardens", "The Colossus", "The Mausoleum"],
+      ["Who was the first Roman emperor?", "Augustus", "Julius Caesar", "Nero", "Caligula"],
+      ["In what year was the Magna Carta sealed?", "1215", "1066", "1415", "1314"],
+      ["What ship carried the Pilgrims to North America in 1620?", "Mayflower", "Santa María", "Endeavour", "Speedwell"],
+      ["Who was Britain's prime minister for most of World War II?", "Winston Churchill", "Neville Chamberlain", "Clement Attlee", "Anthony Eden"],
+      ["Which civilization built Machu Picchu?", "Inca", "Aztec", "Maya", "Olmec"],
+      ["In what year did humans first land on the Moon?", "1969", "1967", "1971", "1965"],
+      ["The Rosetta Stone helped scholars decipher which writing system?", "Egyptian hieroglyphs", "Linear B", "Cuneiform", "Maya glyphs"],
+      ["Suleiman the Magnificent ruled which empire?", "Ottoman", "Mughal", "Persian", "Byzantine"],
+      ["Who wrote the first draft of the Declaration of Independence?", "Thomas Jefferson", "Benjamin Franklin", "John Adams", "James Madison"],
+      ["The Hundred Years' War was fought between England and which country?", "France", "Spain", "Scotland", "the Netherlands"],
+      ["Who was the first woman to win a Nobel Prize?", "Marie Curie", "Jane Addams", "Dorothy Hodgkin", "Rosalind Franklin"],
+      ["In what year did the Titanic sink?", "1912", "1905", "1915", "1920"]
+    ]
+  },
+  {
+    name: "Science", color: "#22c55e",
+    questions: [
+      ["What is the chemical symbol for gold?", "Au", "Ag", "Gd", "Go"],
+      ["Which planet has the most known moons?", "Saturn", "Jupiter", "Uranus", "Neptune"],
+      ["Which part of the cell is known as its 'powerhouse'?", "Mitochondria", "Nucleus", "Ribosome", "Golgi apparatus"],
+      ["Roughly how fast does light travel?", "300,000 km/s", "30,000 km/s", "3,000,000 km/s", "150,000 km/s"],
+      ["What is the hardest natural substance?", "Diamond", "Quartz", "Topaz", "Granite"],
+      ["How many bones are in the adult human body?", "206", "186", "212", "256"],
+      ["Which gas do plants absorb for photosynthesis?", "Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"],
+      ["What is the pH of pure water at 25°C?", "7", "0", "5", "14"],
+      ["Which blood type is the universal red-cell donor?", "O negative", "AB positive", "A negative", "B positive"],
+      ["Who developed the theory of general relativity?", "Albert Einstein", "Isaac Newton", "Niels Bohr", "Stephen Hawking"],
+      ["What is the most abundant gas in Earth's atmosphere?", "Nitrogen", "Oxygen", "Argon", "Carbon dioxide"],
+      ["Which planet is closest to the Sun?", "Mercury", "Venus", "Mars", "Earth"],
+      ["What does DNA stand for?", "Deoxyribonucleic acid", "Dinitrogen acid", "Deoxyribose nucleotide array", "Diribonucleic acid"],
+      ["What is the unit of electrical resistance?", "Ohm", "Volt", "Ampere", "Watt"],
+      ["What is the largest organ of the human body?", "Skin", "Liver", "Brain", "Lungs"]
+    ]
+  },
+  {
+    name: "Arts & Literature", color: "#a855f7",
+    questions: [
+      ["Who painted the Mona Lisa?", "Leonardo da Vinci", "Michelangelo", "Raphael", "Botticelli"],
+      ["Who wrote the novel 1984?", "George Orwell", "Aldous Huxley", "Ray Bradbury", "H. G. Wells"],
+      ["Which Shakespeare play features the moneylender Shylock?", "The Merchant of Venice", "Othello", "Twelfth Night", "Much Ado About Nothing"],
+      ["Who painted The Starry Night?", "Vincent van Gogh", "Claude Monet", "Paul Gauguin", "Paul Cézanne"],
+      ["Who wrote Pride and Prejudice?", "Jane Austen", "Charlotte Brontë", "George Eliot", "Mary Shelley"],
+      ["Who sculpted the marble David in Florence's Galleria dell'Accademia?", "Michelangelo", "Bernini", "Rodin", "Canova"],
+      ["Which ancient poet is credited with The Odyssey?", "Homer", "Virgil", "Sophocles", "Ovid"],
+      ["Salvador Dalí is most associated with which art movement?", "Surrealism", "Cubism", "Impressionism", "Baroque"],
+      ["Who wrote Moby-Dick?", "Herman Melville", "Nathaniel Hawthorne", "Mark Twain", "Edgar Allan Poe"],
+      ["How many lines are in a sonnet?", "14", "12", "16", "10"],
+      ["Who wrote One Hundred Years of Solitude?", "Gabriel García Márquez", "Jorge Luis Borges", "Pablo Neruda", "Isabel Allende"],
+      ["Painter Frida Kahlo was from which country?", "Mexico", "Spain", "Argentina", "Cuba"],
+      ["Who composed The Four Seasons?", "Antonio Vivaldi", "J. S. Bach", "George Frideric Handel", "Wolfgang Amadeus Mozart"],
+      ["Which novel is set in the fictional town of Maycomb, Alabama?", "To Kill a Mockingbird", "Gone with the Wind", "The Color Purple", "Of Mice and Men"],
+      ["What are the three primary colors in traditional color theory?", "Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Cyan, magenta, black"]
+    ]
+  },
+  {
+    name: "Sports & Games", color: "#ef4444",
+    questions: [
+      ["How many players does each soccer team have on the field?", "11", "9", "10", "12"],
+      ["How many squares are on a chessboard?", "64", "81", "49", "100"],
+      ["Which country hosted the first modern Olympics in 1896?", "Greece", "France", "United Kingdom", "United States"],
+      ["What is a perfect score in ten-pin bowling?", "300", "250", "200", "350"],
+      ["In tennis, what word means a score of zero?", "Love", "Nil", "Duck", "Blank"],
+      ["In which sport would you score a 'birdie'?", "Golf", "Bowling", "Cricket", "Archery"],
+      ["How many points is a touchdown worth in American football?", "6", "7", "3", "5"],
+      ["Which chess piece can only move diagonally?", "Bishop", "Rook", "Knight", "Queen"],
+      ["How many holes are on a standard golf course?", "18", "9", "12", "24"],
+      ["How long is a marathon?", "26.2 miles", "24 miles", "25 miles", "28.4 miles"],
+      ["In basketball, how many points is a shot from beyond the arc?", "3", "2", "4", "1"],
+      ["The Tour de France is a race in which sport?", "Cycling", "Running", "Motor racing", "Rowing"],
+      ["How many dots are on a standard six-sided die in total?", "21", "18", "24", "36"],
+      ["Which country created the sport of judo?", "Japan", "China", "South Korea", "Brazil"],
+      ["In baseball, how many strikes make a strikeout?", "3", "2", "4", "5"]
+    ]
+  },
+  {
+    name: "Animals & Nature", color: "#ec4899",
+    questions: [
+      ["What is the fastest land animal?", "Cheetah", "Pronghorn", "Lion", "Greyhound"],
+      ["What is the largest mammal on Earth?", "Blue whale", "African elephant", "Sperm whale", "Giraffe"],
+      ["What is a group of lions called?", "A pride", "A pack", "A herd", "A troop"],
+      ["How many legs does a spider have?", "8", "6", "10", "12"],
+      ["Which flightless bird lives mainly in Antarctica?", "Emperor penguin", "Ostrich", "Kiwi", "Emu"],
+      ["What makes up nearly all of a giant panda's diet?", "Bamboo", "Fish", "Berries", "Insects"],
+      ["Which tree species grows the tallest?", "Coast redwood", "Giant sequoia", "Douglas fir", "Baobab"],
+      ["What is a baby kangaroo called?", "A joey", "A kit", "A cub", "A calf"],
+      ["Which land mammal has the longest pregnancy?", "Elephant", "Giraffe", "Rhinoceros", "Horse"],
+      ["How many hearts does an octopus have?", "3", "1", "2", "8"],
+      ["Which is the only mammal capable of true flight?", "Bat", "Flying squirrel", "Sugar glider", "Colugo"],
+      ["What is the process of a caterpillar becoming a butterfly called?", "Metamorphosis", "Photosynthesis", "Hibernation", "Migration"],
+      ["What is the largest species of shark?", "Whale shark", "Great white shark", "Basking shark", "Tiger shark"],
+      ["A dolphin is what kind of animal?", "Mammal", "Fish", "Amphibian", "Reptile"],
+      ["Which tree produces acorns?", "Oak", "Maple", "Pine", "Birch"]
+    ]
+  }
+];
+
+/* ===================================================================== */
+
+const PLAYER_COLORS = ["#0f172a", "#f8fafc", "#facc15", "#06b6d4", "#92400e", "#84cc16"];
+const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+const RING_R = 170, TOKEN_R = 9;
+
+// ---------- Build the ring: 36 spaces, a wedge (HQ) space every 6th ----------
+const SPACES = [];
+for (let k = 0; k < 6; k++) {
+  SPACES.push({ type: "hq", cat: k });
+  for (const p of [1, 3, "roll", 4, 2]) {
+    SPACES.push(p === "roll" ? { type: "roll" } : { type: "cat", cat: (k + p) % 6 });
+  }
+}
+const N = SPACES.length;
+
+// ---------- Helpers ----------
+const $ = id => document.getElementById(id);
+const rad = d => d * Math.PI / 180;
+const spaceAngle = i => -90 + i * (360 / N);
+const polar = (r, deg) => [200 + r * Math.cos(rad(deg)), 200 + r * Math.sin(rad(deg))];
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function slicePath(cx, cy, r, a1, a2) {
+  const x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
+  const x2 = cx + r * Math.cos(rad(a2)), y2 = cy + r * Math.sin(rad(a2));
+  return `M${cx.toFixed(2)} ${cy.toFixed(2)}L${x1.toFixed(2)} ${y1.toFixed(2)}A${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z`;
+}
+function tokenSVG(p, cx, cy, r) {
+  let s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--panel)"/>`;
+  for (let k = 0; k < 6; k++) {
+    if (p.wedges.has(k)) {
+      s += `<path d="${slicePath(cx, cy, r - 1.5, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}"/>`;
+    }
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="4.5"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.color}" stroke-width="2.6"/>`;
+  return s;
+}
+function miniToken(p) {
+  return `<svg width="30" height="30" viewBox="0 0 30 30">${tokenSVG(p, 15, 15, 11)}</svg>`;
+}
+
+// ---------- State ----------
+let state = null;
+
+// ---------- Setup screen ----------
+function renderNameInputs() {
+  const n = +$("playerCount").value;
+  const old = [...document.querySelectorAll("#nameInputs input")].map(i => i.value);
+  $("nameInputs").innerHTML = Array.from({ length: n }, (_, i) => `
+    <div class="name-row">
+      <span class="swatch" style="background:${PLAYER_COLORS[i]}"></span>
+      <input type="text" maxlength="20" placeholder="Player ${i + 1}" value="${esc(old[i] || "")}">
+    </div>`).join("");
+}
+$("playerCount").addEventListener("change", renderNameInputs);
+renderNameInputs();
+
+$("startBtn").addEventListener("click", () => {
+  const names = [...document.querySelectorAll("#nameInputs input")]
+    .map((inp, i) => inp.value.trim() || `Player ${i + 1}`);
+  startGame(names);
+});
+
+function startGame(names) {
+  state = {
+    players: names.map((name, i) => ({ name, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
+    cur: 0,
+    phase: "roll",      // roll | rolling | move | question | over
+    targets: [],
+    decks: CATEGORIES.map(() => []),
+    status: "Roll the die to begin!"
+  };
+  $("setup").style.display = "none";
+  $("game").style.display = "grid";
+  $("winOverlay").classList.remove("show");
+  render();
+}
+
+$("newGameBtn").addEventListener("click", () => {
+  if (state && state.phase !== "over" && !confirm("Start a new game? Current progress will be lost.")) return;
+  state = null;
+  $("game").style.display = "none";
+  $("setup").style.display = "block";
+  $("die").textContent = "🎲";
+});
+$("playAgainBtn").addEventListener("click", () => {
+  startGame(state.players.map(p => p.name));
+  $("die").textContent = "🎲";
+});
+
+// ---------- Rendering ----------
+function render() {
+  renderBoard();
+  renderPanel();
+}
+
+function renderBoard() {
+  let s = "";
+  // Track
+  s += `<circle cx="200" cy="200" r="${RING_R}" fill="none" stroke="var(--line)" stroke-width="26"/>`;
+
+  // Hub
+  for (let k = 0; k < 6; k++) {
+    s += `<path d="${slicePath(200, 200, 54, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}" stroke="var(--panel)" stroke-width="2"/>`;
+  }
+  s += `<circle cx="200" cy="200" r="24" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>`;
+  s += `<text x="200" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">HUB</text>`;
+
+  // Spaces
+  SPACES.forEach((sp, i) => {
+    const [x, y] = polar(RING_R, spaceAngle(i));
+    const isT = state.phase === "move" && state.targets.includes(i);
+    const r = sp.type === "hq" ? 17 : 12;
+    let g = `<g data-i="${i}" class="${isT ? "space-target" : ""}">`;
+    if (isT) g += `<circle class="glow" cx="${x}" cy="${y}" r="${r + 6}" fill="none" stroke="var(--ink)" stroke-width="3"/>`;
+    if (sp.type === "roll") {
+      g += `<circle cx="${x}" cy="${y}" r="${r}" fill="#475569" stroke="var(--panel)" stroke-width="2"/>`;
+      g += `<text x="${x}" y="${y + 6}" text-anchor="middle" font-size="17" fill="#fff">⚄</text>`;
+    } else {
+      g += `<circle cx="${x}" cy="${y}" r="${r}" fill="${CATEGORIES[sp.cat].color}" stroke="var(--panel)" stroke-width="2"/>`;
+      if (sp.type === "hq") g += `<text x="${x}" y="${y + 6}" text-anchor="middle" font-size="17" fill="#fff">★</text>`;
+    }
+    if (isT) g += `<circle cx="${x}" cy="${y}" r="${r + 8}" fill="transparent"/>`; // bigger tap area
+    g += `</g>`;
+    s += g;
+  });
+
+  // Tokens — grouped by space so they fan out instead of stacking
+  const groups = {};
+  state.players.forEach((p, i) => (groups[p.pos] ||= []).push(i));
+  for (const [pos, ids] of Object.entries(groups)) {
+    ids.forEach((pi, j) => {
+      const off = (j - (ids.length - 1) / 2) * 7.5;
+      const [x, y] = polar(RING_R - 32, spaceAngle(+pos) + off);
+      const p = state.players[pi];
+      if (pi === state.cur && state.phase !== "over") {
+        s += `<circle class="active-ring" cx="${x}" cy="${y}" r="${TOKEN_R + 4.5}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+      }
+      s += tokenSVG(p, x, y, TOKEN_R);
+    });
+  }
+  $("board").innerHTML = s;
+}
+
+function renderPanel() {
+  const p = state.players[state.cur];
+  const allWedges = p.wedges.size === 6;
+  $("turnBanner").innerHTML = `${miniToken(p).replace('<svg', '<svg style="vertical-align:middle;margin-right:6px"')}${esc(p.name)}'s turn`;
+  $("status").innerHTML = state.status;
+
+  const rb = $("rollBtn");
+  rb.textContent = allWedges ? "Head to the Hub 🏁" : "Roll";
+  rb.disabled = state.phase !== "roll";
+
+  // Direction buttons as an alternative to tapping the board
+  const db = $("dirButtons");
+  if (state.phase === "move") {
+    const [cw, ccw] = state.targets;
+    db.innerHTML = `<button class="secondary" data-t="${ccw}">↺ Counter-clockwise</button>` +
+      (cw !== ccw ? `<button class="secondary" data-t="${cw}">Clockwise ↻</button>` : "");
+  } else {
+    db.innerHTML = "";
+  }
+
+  $("players").innerHTML = state.players.map((pl, i) => `
+    <li class="${i === state.cur ? "current" : ""}">
+      ${miniToken(pl)}
+      <span class="pname">${esc(pl.name)}</span>
+      <span class="pcount">${pl.wedges.size}/6</span>
+    </li>`).join("");
+
+  $("legend").innerHTML = CATEGORIES.map(c => `<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("");
+}
+
+// ---------- Turn flow ----------
+function curPlayer() { return state.players[state.cur]; }
+
+function rollOrHub() {
+  if (state.phase !== "roll") return;
+  if (curPlayer().wedges.size === 6) {
+    const cat = Math.floor(Math.random() * 6);
+    askQuestion(cat, "final");
+    return;
+  }
+  state.phase = "rolling";
+  renderPanel();
+  let ticks = 0;
+  const iv = setInterval(() => {
+    $("die").textContent = DIE_FACES[Math.floor(Math.random() * 6)];
+    if (++ticks >= 9) {
+      clearInterval(iv);
+      const r = 1 + Math.floor(Math.random() * 6);
+      $("die").textContent = DIE_FACES[r - 1];
+      const pos = curPlayer().pos;
+      state.targets = [(pos + r) % N, (pos - r + N) % N];
+      state.phase = "move";
+      state.status = `You rolled a <b>${r}</b>. Tap a glowing space to move there.`;
+      render();
+    }
+  }, 60);
+}
+
+function moveTo(i) {
+  if (state.phase !== "move" || !state.targets.includes(i)) return;
+  const p = curPlayer();
+  p.pos = i;
+  state.targets = [];
+  const sp = SPACES[i];
+  if (sp.type === "roll") {
+    state.phase = "roll";
+    state.status = "🎲 Free roll! Go again.";
+    render();
+  } else {
+    render();
+    askQuestion(sp.cat, sp.type === "hq" ? "hq" : "normal");
+  }
+}
+
+function drawQuestion(cat) {
+  const deck = state.decks[cat];
+  if (!deck.length) deck.push(...shuffle(CATEGORIES[cat].questions.map((_, i) => i)));
+  return CATEGORIES[cat].questions[deck.pop()];
+}
+
+let currentQ = null;
+function askQuestion(cat, mode) {
+  state.phase = "question";
+  renderPanel();
+  const [q, correct, ...wrong] = drawQuestion(cat);
+  const choices = shuffle([correct, ...wrong]);
+  currentQ = { cat, mode, correct, choices, answered: false };
+
+  const c = CATEGORIES[cat];
+  $("qBadge").textContent = c.name;
+  $("qBadge").style.background = c.color;
+  const p = curPlayer();
+  $("qTag").textContent =
+    mode === "final" ? "🏁 FINAL QUESTION" :
+    mode === "hq" ? (p.wedges.has(cat) ? "★ Wedge space (already earned)" : "★ WEDGE QUESTION") : "";
+  $("qText").textContent = q;
+  $("qChoices").innerHTML = choices.map((ch, i) =>
+    `<button data-c="${i}"><span class="key">${i + 1}</span>${esc(ch)}</button>`).join("");
+  $("qFeedback").textContent = "";
+  $("qContinue").style.display = "none";
+  $("qOverlay").classList.add("show");
+}
+
+function answer(i) {
+  if (!currentQ || currentQ.answered) return;
+  currentQ.answered = true;
+  const picked = currentQ.choices[i];
+  const ok = picked === currentQ.correct;
+  currentQ.ok = ok;
+  [...$("qChoices").children].forEach((b, j) => {
+    b.disabled = true;
+    b.style.opacity = 1;
+    if (currentQ.choices[j] === currentQ.correct) b.classList.add("correct");
+    else if (j === i) b.classList.add("wrong");
+  });
+  $("qFeedback").innerHTML = ok
+    ? `<span style="color:var(--good)">✔ Correct!</span>`
+    : `<span style="color:var(--bad)">✘ The answer was ${esc(currentQ.correct)}.</span>`;
+  $("qContinue").style.display = "block";
+  $("qContinue").focus();
+}
+
+function resolveQuestion() {
+  if (!currentQ || !currentQ.answered) return;
+  $("qOverlay").classList.remove("show");
+  const { ok, mode, cat } = currentQ;
+  currentQ = null;
+  const p = curPlayer();
+
+  if (ok && mode === "final") {
+    state.phase = "over";
+    render();
+    $("winText").textContent = `${p.name} wins!`;
+    $("winOverlay").classList.add("show");
+    return;
+  }
+
+  if (ok) {
+    let msg = "Correct! Roll again.";
+    if (mode === "hq" && !p.wedges.has(cat)) {
+      p.wedges.add(cat);
+      msg = `🧀 You earned the <b style="color:${CATEGORIES[cat].color}">${esc(CATEGORIES[cat].name)}</b> wedge!`;
+      msg += p.wedges.size === 6 ? " That's all six — head to the Hub!" : " Roll again.";
+    }
+    state.status = msg;
+  } else {
+    const prev = p.name;
+    state.cur = (state.cur + 1) % state.players.length;
+    state.status = state.players.length > 1
+      ? `${esc(prev)} missed. ${esc(curPlayer().name)}, you're up!`
+      : "Missed that one. Roll again.";
+    if (mode === "final") state.status = `So close, ${esc(prev)}! ` + state.status;
+  }
+  state.phase = "roll";
+  render();
+}
+
+// ---------- Events ----------
+$("rollBtn").addEventListener("click", rollOrHub);
+$("board").addEventListener("click", e => {
+  const g = e.target.closest("g[data-i]");
+  if (g) moveTo(+g.dataset.i);
+});
+$("dirButtons").addEventListener("click", e => {
+  const b = e.target.closest("button[data-t]");
+  if (b) moveTo(+b.dataset.t);
+});
+$("qChoices").addEventListener("click", e => {
+  const b = e.target.closest("button[data-c]");
+  if (b) answer(+b.dataset.c);
+});
+$("qContinue").addEventListener("click", resolveQuestion);
+
+document.addEventListener("keydown", e => {
+  if (!state || e.target.tagName === "INPUT") return;
+  if (state.phase === "question") {
+    if (["1", "2", "3", "4"].includes(e.key)) answer(+e.key - 1);
+    else if (e.key === "Enter" && currentQ && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
+  } else if (state.phase === "roll" && (e.key === "r" || e.key === "R")) {
+    rollOrHub();
+  }
+});
+</script>
+</body>
+</html>
