@@ -156,9 +156,21 @@
   }
   #players li.current { border-color: var(--gold); box-shadow: 0 0 18px rgba(245,196,81,.25); }
   #players .pname { font-weight: 800; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wedges { display: flex; gap: 4px; }
-  .wedges i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; display: block; opacity: .55; }
-  .wedges i.got { opacity: 1; box-shadow: 0 0 6px currentColor; }
+  .players-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .players-head span:last-child { padding-right: 14px; }
+  .wedges { display: flex; gap: 5px; }
+  .wedges i { position: relative; width: 15px; height: 15px; border-radius: 50%; border: 2px solid; display: block; cursor: help; outline: none; }
+  .wedges i.got { box-shadow: 0 0 6px currentColor; }
+  .wedges i::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 9px); right: -8px;
+    white-space: nowrap; font-style: normal; font-size: .8rem; font-weight: 800; color: var(--ink);
+    background: #061a22; border: 1px solid var(--line); border-radius: 9px; padding: 5px 9px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.45);
+    opacity: 0; transform: translateY(4px); pointer-events: none; transition: opacity .15s, transform .15s; z-index: 5;
+  }
+  .wedges i:hover::after, .wedges i:focus::after { opacity: 1; transform: none; }
+  .wedges i:focus-visible { box-shadow: 0 0 0 2px var(--gold); }
   #players li.bump { animation: bump .5s; }
   @keyframes bump { 30% { transform: scale(1.04); } }
 
@@ -300,7 +312,7 @@
     </div>
     <div class="dir-buttons" id="dirButtons"></div>
 
-    <h3>Players</h3>
+    <h3 class="players-head"><span>Players</span><span>Wedges</span></h3>
     <ul id="players"></ul>
 
     <h3>Categories</h3>
@@ -311,7 +323,7 @@
       <ul>
         <li>Roll, then tap one of the two glowing spaces (or use the arrow buttons).</li>
         <li>Answer a question from that space's category. Right = roll again. Wrong = next player.</li>
-        <li>Spaces with an icon badge are <b>wedge spaces</b>. Answer correctly there to earn that wedge.</li>
+        <li>Spaces with an icon badge are <b>wedge spaces</b>. Answer correctly there to earn that wedge — it fills in a circle next to your name (hover or tap a circle to see its category).</li>
         <li>Die spaces give you a free roll.</li>
         <li>With all six wedges, head to the Hub and answer one final question to win.</li>
         <li>🤖 Computer players take their turns automatically.</li>
@@ -928,8 +940,13 @@ function renderPanel() {
     <li class="${i === state.cur ? "current" : ""}" data-p="${i}">
       ${miniToken(pl)}
       <span class="pname">${displayName(pl)}</span>
-      <span class="wedges">${CATEGORIES.map((c, k) =>
-        `<i class="${pl.wedges.has(k) ? "got" : ""}" title="${esc(c.name)}" style="border-color:${c.color};color:${c.color};background:${pl.wedges.has(k) ? c.color : "transparent"}"></i>`).join("")}</span>
+      <span class="wedges" aria-label="${pl.wedges.size} of 6 wedges">${CATEGORIES.map((c, k) => {
+        const got = pl.wedges.has(k);
+        return `<i class="${got ? "got" : ""}" tabindex="0"
+                   data-tip="${c.icon} ${esc(c.name)} — ${got ? "earned ✓" : "not yet"}"
+                   aria-label="${esc(c.name)} wedge ${got ? "earned" : "not earned"}"
+                   style="color:${c.color};border-color:${got ? c.color : c.color + "99"};background:${got ? c.color : "transparent"}"></i>`;
+      }).join("")}</span>
     </li>`).join("");
 
   $("legend").innerHTML = CATEGORIES.map(c =>
