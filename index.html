@@ -4,167 +4,236 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wedge Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f1ea;
-    --panel: #ffffff;
-    --ink: #1f2328;
-    --muted: #6b7280;
-    --line: #ddd6c6;
-    --good: #16a34a;
-    --bad: #dc2626;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14161b;
-      --panel: #1f232b;
-      --ink: #eef0f3;
-      --muted: #9aa3af;
-      --line: #313743;
-      --good: #22c55e;
-      --bad: #f87171;
-    }
+    --ink: #f3f6f8;
+    --muted: #9db4be;
+    --panel: rgba(8, 28, 36, .80);
+    --panel-2: rgba(255, 255, 255, .06);
+    --line: rgba(255, 255, 255, .13);
+    --gold: #f5c451;
+    --gold-d: #b8841a;
+    --good: #34d399;
+    --bad: #f87171;
+    --display: "Fredoka", "Nunito", system-ui, sans-serif;
+    --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { color-scheme: dark; }
   body {
     margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
     min-height: 100vh;
+    color: var(--ink);
+    font-family: var(--body);
+    background:
+      radial-gradient(1100px 650px at 50% -10%, rgba(40, 140, 160, .45), transparent 65%),
+      radial-gradient(circle, rgba(255, 255, 255, .035) 1px, transparent 1.3px) 0 0 / 7px 7px,
+      linear-gradient(#0a2c38, #051820);
+    background-attachment: fixed;
   }
+
+  /* ---------- Header ---------- */
   header {
-    text-align: center;
-    padding: 18px 16px 4px;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 22px 16px 6px; text-align: left;
   }
-  header h1 { margin: 0; font-size: 1.9rem; letter-spacing: .5px; }
-  header p { margin: 4px 0 0; color: var(--muted); }
-
-  button {
-    font: inherit;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    cursor: pointer;
-    background: var(--ink);
-    color: var(--bg);
-    font-weight: 600;
-    transition: transform .08s, opacity .2s;
+  header svg { width: 54px; height: 54px; flex: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+  header h1 {
+    margin: 0; font-family: var(--display); font-weight: 700; font-size: 2.3rem; line-height: 1;
+    letter-spacing: .5px; text-shadow: 0 3px 0 rgba(0,0,0,.35);
   }
-  button:active { transform: scale(.97); }
-  button:disabled { opacity: .4; cursor: default; transform: none; }
-  button.secondary { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+  header p { margin: 4px 0 0; color: var(--muted); font-weight: 700; }
 
-  .card {
+  /* ---------- Shared ---------- */
+  .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 18px;
-    box-shadow: 0 4px 18px rgba(0,0,0,.06);
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(8px);
   }
+  .btn {
+    font: inherit; font-family: var(--display); font-weight: 600; font-size: 1.05rem;
+    border: none; border-radius: 14px; padding: 12px 18px; cursor: pointer;
+    color: #3b2700; background: linear-gradient(#ffd877, #f2b631);
+    box-shadow: 0 4px 0 var(--gold-d), 0 8px 18px rgba(0,0,0,.3);
+    transition: transform .08s, box-shadow .08s, filter .2s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold-d), 0 4px 10px rgba(0,0,0,.3); }
+  .btn:disabled { filter: grayscale(.85) brightness(.65); cursor: default; transform: none; box-shadow: 0 4px 0 #3b3b3b; }
+  .btn.ghost { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); }
+  .btn.ghost:active { transform: translateY(1px); }
+  h3 { font-family: var(--display); font-weight: 600; font-size: .95rem; letter-spacing: .08em;
+       text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
 
   /* ---------- Setup ---------- */
-  #setup { max-width: 440px; margin: 24px auto; padding: 0 16px; }
-  #setup label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  #setup { max-width: 500px; margin: 22px auto 40px; padding: 0 16px; }
+  #setup label { display: block; font-family: var(--display); font-weight: 600; margin: 12px 0 8px; }
   #setup select, #setup input {
-    width: 100%; padding: 10px 12px; font: inherit;
-    border-radius: 10px; border: 2px solid var(--line);
-    background: var(--bg); color: var(--ink);
+    width: 100%; padding: 11px 12px; font: inherit; font-weight: 700;
+    border-radius: 12px; border: 2px solid var(--line);
+    background: rgba(0,0,0,.28); color: var(--ink);
   }
-  .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  #setup select:focus, #setup input:focus { outline: none; border-color: var(--gold); }
+  select option { background: #0f2a34; color: var(--ink); }
+  .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
   .name-row input { flex: 1; min-width: 0; }
   #setup .name-row select { width: auto; flex: none; }
-  .hint { color: var(--muted); font-size: .88rem; margin: 6px 0 0; }
-  .swatch { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid rgba(0,0,0,.4); }
-  #startBtn { width: 100%; margin-top: 16px; padding: 14px; font-size: 1.05rem; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; flex: none; background: #f6f1e7;
+            border: 4px solid; box-shadow: 0 0 0 1.5px rgba(0,0,0,.7), 0 3px 6px rgba(0,0,0,.4); }
+  .hint { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+  #startBtn { width: 100%; margin-top: 18px; padding: 15px; font-size: 1.2rem; }
 
   /* ---------- Game ---------- */
   #game {
     display: none;
-    max-width: 1000px; margin: 12px auto 30px; padding: 0 16px;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    max-width: 1060px; margin: 14px auto 40px; padding: 0 16px;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
     align-items: start;
   }
-  @media (max-width: 760px) { #game { grid-template-columns: 1fr; } }
+  @media (max-width: 800px) {
+    #game { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.8rem; }
+    header svg { width: 42px; height: 42px; }
+  }
   #boardWrap { padding: 10px; }
-  #board { width: 100%; height: auto; display: block; }
-  #board .space-target { cursor: pointer; }
+  #board { width: 100%; height: auto; display: block; overflow: visible; }
+  #board .target { cursor: pointer; }
   #board .glow { animation: pulse 1s ease-in-out infinite; }
-  #board .active-ring { animation: spin 6s linear infinite; transform-box: fill-box; transform-origin: center; }
-  @keyframes pulse { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+  #board .halo { animation: spin 5s linear infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .turn-banner { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
-  #status { color: var(--muted); min-height: 2.6em; margin: 0 0 12px; }
-  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #die {
-    font-size: 54px; line-height: 1; width: 64px; text-align: center;
-    user-select: none;
-  }
-  #rollBtn { flex: 1; padding: 14px; font-size: 1.05rem; }
+  .turn { display: flex; align-items: center; gap: 12px; }
+  .turn-label { font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  #turnName { font-family: var(--display); font-weight: 600; font-size: 1.45rem; line-height: 1.15; }
+  #status { color: var(--muted); font-weight: 700; min-height: 2.8em; margin: 12px 0 14px; }
+  #status b { color: var(--ink); }
+  .controls { display: flex; align-items: center; gap: 14px; }
+  #rollBtn { flex: 1; padding: 16px; font-size: 1.15rem; }
   .dir-buttons { display: flex; gap: 8px; margin-top: 10px; }
-  .dir-buttons button { flex: 1; }
+  .dir-buttons .btn { flex: 1; font-size: .95rem; padding: 10px; }
 
-  #players { list-style: none; padding: 0; margin: 16px 0 0; }
+  .die {
+    width: 64px; height: 64px; flex: none; border-radius: 15px; padding: 9px; gap: 2px;
+    background: linear-gradient(145deg, #fffdf7, #e4dccb);
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,.13), inset 0 2px 0 #fff, 0 6px 14px rgba(0,0,0,.45);
+    display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  }
+  .die span { width: 11px; height: 11px; margin: auto; border-radius: 50%; }
+  .die span.on { background: #1f2937; box-shadow: inset 0 2px 2px rgba(0,0,0,.6); }
+  .die.rolling { animation: tumble .32s linear infinite; }
+  @keyframes tumble { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(.88); } 100% { transform: rotate(360deg) scale(1); } }
+
+  #players { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
   #players li {
     display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 10px; margin-bottom: 4px;
-    border: 2px solid transparent;
+    padding: 8px 12px; border-radius: 14px; background: var(--panel-2);
+    border: 2px solid transparent; transition: border-color .2s, box-shadow .2s;
   }
-  #players li.current { border-color: var(--ink); }
-  #players .pname { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #players .pcount { color: var(--muted); font-size: .9rem; }
+  #players li.current { border-color: var(--gold); box-shadow: 0 0 18px rgba(245,196,81,.25); }
+  #players .pname { font-weight: 800; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wedges { display: flex; gap: 4px; }
+  .wedges i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; display: block; opacity: .55; }
+  .wedges i.got { opacity: 1; box-shadow: 0 0 6px currentColor; }
+  #players li.bump { animation: bump .5s; }
+  @keyframes bump { 30% { transform: scale(1.04); } }
 
-  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin-top: 14px; font-size: .9rem; }
-  .legend span { display: flex; align-items: center; gap: 6px; }
-  .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: .9rem; font-weight: 700; }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+  .legend i { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-size: 13px; flex: none; }
 
-  details { margin-top: 14px; color: var(--muted); font-size: .92rem; }
-  details summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  details { margin-top: 16px; color: var(--muted); font-size: .92rem; }
+  details summary { cursor: pointer; font-family: var(--display); font-weight: 600; color: var(--ink); }
   details ul { padding-left: 18px; margin: 8px 0 0; }
+  details li { margin-bottom: 4px; }
 
-  /* ---------- Modal ---------- */
+  /* ---------- Modals ---------- */
   .overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.55);
-    display: none; align-items: center; justify-content: center;
-    padding: 16px; z-index: 10;
+    position: fixed; inset: 0; z-index: 10;
+    background: rgba(2, 10, 14, .72); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; padding: 16px;
   }
   .overlay.show { display: flex; }
-  .modal { width: 100%; max-width: 520px; animation: pop .18s ease-out; }
-  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
-  .badge {
-    display: inline-block; color: #fff; font-weight: 700; font-size: .85rem;
-    padding: 5px 12px; border-radius: 999px; letter-spacing: .3px;
+  .qcard {
+    width: 100%; max-width: 560px; border-radius: 22px; overflow: hidden;
+    background: #0f2a34; border: 1px solid var(--line);
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    animation: pop .25s cubic-bezier(.2, 1.4, .4, 1);
   }
-  .qtag { margin-left: 8px; font-weight: 700; font-size: .85rem; color: var(--muted); }
-  #qText { font-size: 1.25rem; font-weight: 600; margin: 14px 0 16px; line-height: 1.35; }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+  .qhead { display: flex; align-items: center; gap: 14px; padding: 16px 20px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .qicon { font-size: 30px; width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.22);
+           display: grid; place-items: center; flex: none; box-shadow: inset 0 2px 0 rgba(255,255,255,.3); }
+  .qcat { font-family: var(--display); font-size: 1.35rem; font-weight: 600; }
+  .qtag { display: inline-block; margin-top: 4px; font-size: .75rem; font-weight: 800; letter-spacing: .07em;
+          background: rgba(0,0,0,.28); padding: 3px 10px; border-radius: 999px; }
+  .qbody { padding: 20px; }
+  #qText { font-family: var(--display); font-size: 1.4rem; font-weight: 500; line-height: 1.35; margin-bottom: 18px; }
   #qChoices { display: grid; gap: 10px; }
   #qChoices button {
-    text-align: left; background: var(--bg); color: var(--ink);
-    border: 2px solid var(--line); font-weight: 500; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    font: inherit; font-weight: 700; font-size: 1.02rem; color: var(--ink);
+    background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px;
+    padding: 11px 14px; cursor: pointer; transition: transform .1s, background .2s, border-color .2s, opacity .2s;
   }
-  #qChoices button .key { color: var(--muted); font-weight: 700; margin-right: 8px; }
-  #qChoices button.correct { border-color: var(--good); background: color-mix(in srgb, var(--good) 18%, var(--panel)); }
-  #qChoices button.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 18%, var(--panel)); }
-  #qFeedback { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; }
-  #qContinue { width: 100%; margin-top: 10px; display: none; }
+  #qChoices button:hover:not(:disabled) { border-color: rgba(255,255,255,.4); transform: translateX(3px); }
+  #qChoices button:disabled { cursor: default; }
+  #qChoices button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+  .key { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+         background: rgba(255,255,255,.1); font-family: var(--display); font-weight: 600; }
+  #qChoices button.correct { border-color: var(--good); background: rgba(52,211,153,.18); animation: pop .3s; }
+  #qChoices button.correct .key { background: var(--good); color: #04241a; }
+  #qChoices button.wrong { border-color: var(--bad); background: rgba(248,113,113,.16); animation: shake .4s; }
+  #qChoices button.wrong .key { background: var(--bad); color: #2a0606; }
+  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  #qFeedback { min-height: 1.5em; margin: 16px 0 0; font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
+  #qContinue { width: 100%; margin-top: 12px; display: none; }
 
-  #winModal { text-align: center; }
-  #winModal h2 { font-size: 2rem; margin: 6px 0; }
+  #winCard { text-align: center; padding: 28px 22px; }
+  #winCard .trophy { font-size: 72px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+  #winCard h2 { font-family: var(--display); font-size: 2.1rem; margin: 8px 0; }
+  #winCard p { color: var(--muted); font-weight: 700; }
+
+  #toast {
+    position: fixed; top: 16px; left: 50%; z-index: 20;
+    transform: translate(-50%, -200%); opacity: 0;
+    transition: transform .35s cubic-bezier(.2, 1.3, .4, 1), opacity .25s;
+    background: linear-gradient(#ffe08a, #f5bd3a); color: #3b2700;
+    font-family: var(--display); font-weight: 600; font-size: 1.05rem;
+    padding: 10px 20px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    max-width: calc(100vw - 32px); text-align: center;
+  }
+  #toast.show { transform: translate(-50%, 0); opacity: 1; }
+  #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 </style>
 </head>
 <body>
 
+<svg id="svgDefs" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
+
 <header>
-  <h1>🧀 Wedge Quest</h1>
-  <p>Answer your way around the ring and collect all six wedges.</p>
+  <svg viewBox="0 0 54 54" aria-hidden="true">
+    <circle cx="27" cy="27" r="26" fill="#f6f1e7"/>
+    <g id="logoSlices"></g>
+    <circle cx="27" cy="27" r="26" fill="none" stroke="#0b1d24" stroke-width="2"/>
+  </svg>
+  <div>
+    <h1>Wedge Quest</h1>
+    <p>Answer your way around the ring. Collect all six wedges.</p>
+  </div>
 </header>
 
 <!-- ================= SETUP ================= -->
 <section id="setup">
-  <div class="card">
+  <div class="panel">
     <label for="playerCount">Number of players</label>
     <select id="playerCount">
       <option value="1">1 player</option>
@@ -174,70 +243,89 @@
       <option value="5">5 players</option>
       <option value="6">6 players</option>
     </select>
-    <label>Player / team names</label>
+    <label>Players &amp; teams</label>
     <div id="nameInputs"></div>
-    <p class="hint">Set any player to 🤖 Computer to play against the machine. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
-    <button id="startBtn">Start Game</button>
+    <p class="hint">Set any player to 🤖 to play against the computer. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
+    <button class="btn" id="startBtn">Start Game</button>
   </div>
 </section>
 
 <!-- ================= GAME ================= -->
 <main id="game">
-  <div class="card" id="boardWrap">
-    <svg id="board" viewBox="0 0 400 400" aria-label="Game board"></svg>
+  <div class="panel" id="boardWrap">
+    <svg id="board" viewBox="0 0 440 440" aria-label="Game board"></svg>
   </div>
 
-  <div class="card">
-    <div class="turn-banner" id="turnBanner"></div>
+  <div class="panel">
+    <div class="turn">
+      <span id="turnToken"></span>
+      <div>
+        <div class="turn-label">Now playing</div>
+        <div id="turnName"></div>
+      </div>
+    </div>
     <p id="status"></p>
     <div class="controls">
-      <div id="die">🎲</div>
-      <button id="rollBtn">Roll</button>
+      <div class="die" id="die"></div>
+      <button class="btn" id="rollBtn">Roll</button>
     </div>
     <div class="dir-buttons" id="dirButtons"></div>
 
+    <h3>Players</h3>
     <ul id="players"></ul>
 
+    <h3>Categories</h3>
     <div class="legend" id="legend"></div>
 
     <details>
       <summary>How to play</summary>
       <ul>
-        <li>Roll, then tap one of the two glowing spaces (clockwise or counter-clockwise).</li>
-        <li>Answer a question from that space's category. Get it right and you roll again; miss it and the turn passes.</li>
-        <li>The big ★ spaces are <b>wedge spaces</b>. A correct answer there earns that category's wedge.</li>
-        <li>🎲 spaces give you a free roll.</li>
-        <li>Once you have all six wedges, head to the Hub and answer a final question to win.</li>
+        <li>Roll, then tap one of the two glowing spaces (or use the arrow buttons).</li>
+        <li>Answer a question from that space's category. Right = roll again. Wrong = next player.</li>
+        <li>Spaces with an icon badge are <b>wedge spaces</b>. Answer correctly there to earn that wedge.</li>
+        <li>Die spaces give you a free roll.</li>
+        <li>With all six wedges, head to the Hub and answer one final question to win.</li>
         <li>🤖 Computer players take their turns automatically.</li>
-        <li>Keyboard: <b>1–4</b> to answer, <b>Enter</b> to continue, <b>R</b> to roll.</li>
+        <li>Keyboard: <b>1–4</b> or <b>A–D</b> to answer, <b>Enter</b> to continue, <b>R</b> to roll.</li>
       </ul>
     </details>
-    <div style="margin-top:14px">
-      <button class="secondary" id="newGameBtn">New Game</button>
+    <div style="margin-top:16px">
+      <button class="btn ghost" id="newGameBtn">New Game</button>
     </div>
   </div>
 </main>
 
 <!-- ================= QUESTION MODAL ================= -->
 <div class="overlay" id="qOverlay">
-  <div class="card modal">
-    <span class="badge" id="qBadge"></span><span class="qtag" id="qTag"></span>
-    <div id="qText"></div>
-    <div id="qChoices"></div>
-    <div id="qFeedback"></div>
-    <button id="qContinue">Continue</button>
+  <div class="qcard" id="qCard">
+    <div class="qhead" id="qHead">
+      <span class="qicon" id="qIcon"></span>
+      <div>
+        <div class="qcat" id="qCat"></div>
+        <div class="qtag" id="qTag"></div>
+      </div>
+    </div>
+    <div class="qbody">
+      <div id="qText"></div>
+      <div id="qChoices"></div>
+      <div id="qFeedback"></div>
+      <button class="btn" id="qContinue">Continue</button>
+    </div>
   </div>
 </div>
 
 <!-- ================= WIN MODAL ================= -->
 <div class="overlay" id="winOverlay">
-  <div class="card modal" id="winModal">
-    <div style="font-size:64px">🏆</div>
+  <div class="qcard" id="winCard">
+    <div class="trophy">🏆</div>
     <h2 id="winText"></h2>
-    <p style="color:var(--muted)">All six wedges and a correct final answer. Well played!</p>
-    <button id="playAgainBtn">Play Again</button>
+    <p>All six wedges and a correct final answer. Well played!</p>
+    <button class="btn" id="playAgainBtn" style="margin-top:8px">Play Again</button>
   </div>
 </div>
+
+<div id="toast"></div>
+<canvas id="confetti"></canvas>
 
 <script>
 /* =====================================================================
@@ -247,7 +335,7 @@
    ===================================================================== */
 const CATEGORIES = [
   {
-    name: "Geography", color: "#3b82f6",
+    name: "Geography", color: "#3b82f6", icon: "🌍",
     questions: [
       ["What is the capital of Australia?", "Canberra", "Sydney", "Melbourne", "Perth"],
       ["What is the longest river in South America?", "Amazon", "Paraná", "Orinoco", "Magdalena"],
@@ -263,11 +351,36 @@ const CATEGORIES = [
       ["What is the capital of Brazil?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"],
       ["Which river flows through Baghdad?", "Tigris", "Euphrates", "Jordan", "Nile"],
       ["Which continent has the most countries?", "Africa", "Asia", "Europe", "South America"],
-      ["What is the tallest mountain in the world above sea level?", "Mount Everest", "K2", "Kangchenjunga", "Denali"]
+      ["What is the tallest mountain in the world above sea level?", "Mount Everest", "K2", "Kangchenjunga", "Denali"],
+      ["What is the capital of Japan?", "Tokyo", "Kyoto", "Osaka", "Hiroshima"],
+      ["Which country has the world's largest population?", "India", "China", "United States", "Indonesia"],
+      ["What is the largest country in the world by area?", "Russia", "Canada", "China", "United States"],
+      ["Which African country has the largest population?", "Nigeria", "Egypt", "Ethiopia", "South Africa"],
+      ["What is the capital of Egypt?", "Cairo", "Alexandria", "Luxor", "Giza"],
+      ["Which mountain range is traditionally seen as a boundary between Europe and Asia?", "Ural Mountains", "Alps", "Carpathians", "Pyrenees"],
+      ["Which U.S. state is nicknamed the Lone Star State?", "Texas", "Alaska", "Montana", "Nevada"],
+      ["What is the capital of Italy?", "Rome", "Milan", "Venice", "Florence"],
+      ["Which river runs through London?", "Thames", "Seine", "Severn", "Avon"],
+      ["Which European country is shaped like a boot?", "Italy", "Greece", "Portugal", "Croatia"],
+      ["What is the largest island in the world that is not a continent?", "Greenland", "New Guinea", "Borneo", "Madagascar"],
+      ["What is the capital of Spain?", "Madrid", "Barcelona", "Seville", "Valencia"],
+      ["In which country is the city of Marrakesh?", "Morocco", "Egypt", "Tunisia", "Algeria"],
+      ["The Panama Canal connects the Atlantic Ocean to which ocean?", "Pacific", "Indian", "Arctic", "Southern"],
+      ["Which U.S. state is made up entirely of islands?", "Hawaii", "Alaska", "Rhode Island", "Florida"],
+      ["What is the capital of Kenya?", "Nairobi", "Mombasa", "Addis Ababa", "Kampala"],
+      ["What is the deepest ocean trench on Earth?", "Mariana Trench", "Puerto Rico Trench", "Java Trench", "Tonga Trench"],
+      ["Which Italian city is built on more than 100 small islands linked by canals?", "Venice", "Naples", "Genoa", "Pisa"],
+      ["What is the largest lake in Africa?", "Lake Victoria", "Lake Tanganyika", "Lake Malawi", "Lake Chad"],
+      ["The ancient city of Petra is in which country?", "Jordan", "Egypt", "Israel", "Syria"],
+      ["Mount Fuji is in which country?", "Japan", "China", "South Korea", "Nepal"],
+      ["What is the capital of Argentina?", "Buenos Aires", "Santiago", "Lima", "Montevideo"],
+      ["Which Great Lake is the largest by surface area?", "Lake Superior", "Lake Michigan", "Lake Huron", "Lake Erie"],
+      ["Which two countries share the world's longest international border?", "Canada and the United States", "Russia and Kazakhstan", "Chile and Argentina", "China and Mongolia"],
+      ["What is the capital of Germany?", "Berlin", "Munich", "Frankfurt", "Hamburg"]
     ]
   },
   {
-    name: "History", color: "#f59e0b",
+    name: "History", color: "#f59e0b", icon: "🏛️",
     questions: [
       ["In what year did the Berlin Wall fall?", "1989", "1987", "1991", "1985"],
       ["Who was the first U.S. president to live in the White House?", "John Adams", "George Washington", "Thomas Jefferson", "James Madison"],
@@ -283,11 +396,36 @@ const CATEGORIES = [
       ["Who wrote the first draft of the Declaration of Independence?", "Thomas Jefferson", "Benjamin Franklin", "John Adams", "James Madison"],
       ["The Hundred Years' War was fought between England and which country?", "France", "Spain", "Scotland", "the Netherlands"],
       ["Who was the first woman to win a Nobel Prize?", "Marie Curie", "Jane Addams", "Dorothy Hodgkin", "Rosalind Franklin"],
-      ["In what year did the Titanic sink?", "1912", "1905", "1915", "1920"]
+      ["In what year did the Titanic sink?", "1912", "1905", "1915", "1920"],
+      ["Who was the first President of the United States?", "George Washington", "John Adams", "Thomas Jefferson", "Benjamin Franklin"],
+      ["In what year did World War II end?", "1945", "1944", "1946", "1918"],
+      ["Genghis Khan founded which empire?", "Mongol", "Ottoman", "Persian", "Roman"],
+      ["The French Revolution began in which year?", "1789", "1776", "1812", "1848"],
+      ["Who gave the famous 'I Have a Dream' speech in 1963?", "Martin Luther King Jr.", "Malcolm X", "John F. Kennedy", "Frederick Douglass"],
+      ["Whose 1492 voyage across the Atlantic reached the Americas?", "Christopher Columbus", "Ferdinand Magellan", "Vasco da Gama", "Amerigo Vespucci"],
+      ["Who was the British king during the American Revolution?", "George III", "George II", "William IV", "Edward VII"],
+      ["The Roman city of Pompeii was buried by which volcano?", "Mount Vesuvius", "Mount Etna", "Stromboli", "Mount Olympus"],
+      ["Which U.S. president issued the Emancipation Proclamation?", "Abraham Lincoln", "Ulysses S. Grant", "Andrew Johnson", "James Buchanan"],
+      ["Who was the first person to walk on the Moon?", "Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"],
+      ["Who was the first human to travel into space?", "Yuri Gagarin", "Alan Shepard", "Neil Armstrong", "John Glenn"],
+      ["In which country did the Industrial Revolution begin?", "Great Britain", "United States", "Germany", "France"],
+      ["Which English queen's navy defeated the Spanish Armada in 1588?", "Elizabeth I", "Victoria", "Mary I", "Anne"],
+      ["Joan of Arc is a national heroine of which country?", "France", "England", "Spain", "Italy"],
+      ["In what year was the Battle of Hastings?", "1066", "1215", "1415", "966"],
+      ["Who led the Soviet Union during World War II?", "Joseph Stalin", "Vladimir Lenin", "Nikita Khrushchev", "Leon Trotsky"],
+      ["Which U.S. founding document begins with 'We the People'?", "The Constitution", "The Declaration of Independence", "The Bill of Rights", "The Articles of Confederation"],
+      ["In what year did the American Civil War begin?", "1861", "1850", "1865", "1776"],
+      ["What was the capital of the Byzantine Empire?", "Constantinople", "Rome", "Athens", "Alexandria"],
+      ["Which British prime minister was nicknamed the 'Iron Lady'?", "Margaret Thatcher", "Theresa May", "Queen Victoria", "Elizabeth I"],
+      ["Whose nearly intact tomb was discovered in Egypt's Valley of the Kings in 1922?", "Tutankhamun", "Ramses II", "Cleopatra", "Khufu"],
+      ["Which country gave the Statue of Liberty to the United States?", "France", "United Kingdom", "Spain", "Italy"],
+      ["Nelson Mandela became president of which country in 1994?", "South Africa", "Zimbabwe", "Kenya", "Namibia"],
+      ["Who wrote the 95 Theses, sparking the Protestant Reformation?", "Martin Luther", "John Calvin", "Henry VIII", "Thomas More"],
+      ["The Great Wall was built mainly to protect which country?", "China", "Mongolia", "Japan", "Korea"]
     ]
   },
   {
-    name: "Science", color: "#22c55e",
+    name: "Science", color: "#22c55e", icon: "🔬",
     questions: [
       ["What is the chemical symbol for gold?", "Au", "Ag", "Gd", "Go"],
       ["Which planet has the most known moons?", "Saturn", "Jupiter", "Uranus", "Neptune"],
@@ -303,11 +441,36 @@ const CATEGORIES = [
       ["Which planet is closest to the Sun?", "Mercury", "Venus", "Mars", "Earth"],
       ["What does DNA stand for?", "Deoxyribonucleic acid", "Dinitrogen acid", "Deoxyribose nucleotide array", "Diribonucleic acid"],
       ["What is the unit of electrical resistance?", "Ohm", "Volt", "Ampere", "Watt"],
-      ["What is the largest organ of the human body?", "Skin", "Liver", "Brain", "Lungs"]
+      ["What is the largest organ of the human body?", "Skin", "Liver", "Brain", "Lungs"],
+      ["What is the chemical formula for water?", "H₂O", "CO₂", "O₂", "H₂O₂"],
+      ["Which planet is known as the Red Planet?", "Mars", "Jupiter", "Venus", "Mercury"],
+      ["What force keeps the planets in orbit around the Sun?", "Gravity", "Magnetism", "Friction", "Static electricity"],
+      ["What is the center of an atom called?", "Nucleus", "Electron", "Shell", "Orbit"],
+      ["What is the freezing point of water in degrees Fahrenheit?", "32°F", "0°F", "212°F", "100°F"],
+      ["Which organ pumps blood through the body?", "Heart", "Lungs", "Liver", "Kidneys"],
+      ["What is the largest planet in our solar system?", "Jupiter", "Saturn", "Neptune", "Earth"],
+      ["Which particle has a negative electric charge?", "Electron", "Proton", "Neutron", "Photon"],
+      ["What is the chemical symbol for sodium?", "Na", "So", "Sd", "S"],
+      ["What type of rock forms when lava or magma cools?", "Igneous", "Sedimentary", "Metamorphic", "Limestone"],
+      ["What is the most common element in the universe?", "Hydrogen", "Helium", "Oxygen", "Carbon"],
+      ["Which vitamin does your skin make when exposed to sunlight?", "Vitamin D", "Vitamin C", "Vitamin A", "Vitamin B12"],
+      ["At sea level, water boils at what temperature in Celsius?", "100°C", "90°C", "120°C", "212°C"],
+      ["Newton's first law of motion is also called the law of what?", "Inertia", "Acceleration", "Gravity", "Energy"],
+      ["How many chromosomes do humans typically have?", "46", "23", "44", "48"],
+      ["Who proposed the theory of evolution by natural selection in On the Origin of Species?", "Charles Darwin", "Gregor Mendel", "Louis Pasteur", "Isaac Newton"],
+      ["What instrument records earthquakes?", "Seismograph", "Barometer", "Thermometer", "Anemometer"],
+      ["What is the chemical symbol for iron?", "Fe", "Ir", "In", "I"],
+      ["Our solar system is part of which galaxy?", "Milky Way", "Andromeda", "Triangulum", "Sombrero"],
+      ["What is the scientific study of weather called?", "Meteorology", "Geology", "Astronomy", "Ecology"],
+      ["Which blood cells help the body fight infection?", "White blood cells", "Red blood cells", "Platelets", "Plasma cells"],
+      ["What is the smallest unit of life?", "The cell", "The atom", "The molecule", "The organ"],
+      ["Which planet is famous for its large, bright ring system?", "Saturn", "Mars", "Venus", "Mercury"],
+      ["What is the name for animals that are active at night?", "Nocturnal", "Diurnal", "Crepuscular", "Dormant"],
+      ["Which simple machine is a ramp?", "Inclined plane", "Lever", "Pulley", "Wheel and axle"]
     ]
   },
   {
-    name: "Arts & Literature", color: "#a855f7",
+    name: "Arts & Literature", color: "#a855f7", icon: "🎨",
     questions: [
       ["Who painted the Mona Lisa?", "Leonardo da Vinci", "Michelangelo", "Raphael", "Botticelli"],
       ["Who wrote the novel 1984?", "George Orwell", "Aldous Huxley", "Ray Bradbury", "H. G. Wells"],
@@ -323,11 +486,36 @@ const CATEGORIES = [
       ["Painter Frida Kahlo was from which country?", "Mexico", "Spain", "Argentina", "Cuba"],
       ["Who composed The Four Seasons?", "Antonio Vivaldi", "J. S. Bach", "George Frideric Handel", "Wolfgang Amadeus Mozart"],
       ["Which novel is set in the fictional town of Maycomb, Alabama?", "To Kill a Mockingbird", "Gone with the Wind", "The Color Purple", "Of Mice and Men"],
-      ["What are the three primary colors in traditional color theory?", "Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Cyan, magenta, black"]
+      ["What are the three primary colors in traditional color theory?", "Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Cyan, magenta, black"],
+      ["Who wrote Romeo and Juliet?", "William Shakespeare", "Christopher Marlowe", "Ben Jonson", "Geoffrey Chaucer"],
+      ["Who wrote the Harry Potter books?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Roald Dahl"],
+      ["Who wrote The Hobbit?", "J. R. R. Tolkien", "C. S. Lewis", "Lewis Carroll", "Philip Pullman"],
+      ["Who painted the ceiling of the Sistine Chapel?", "Michelangelo", "Raphael", "Leonardo da Vinci", "Caravaggio"],
+      ["Who painted The Scream?", "Edvard Munch", "Gustav Klimt", "Vincent van Gogh", "Egon Schiele"],
+      ["Which Charles Dickens story features Ebenezer Scrooge?", "A Christmas Carol", "Oliver Twist", "Great Expectations", "Bleak House"],
+      ["Who wrote The Adventures of Tom Sawyer?", "Mark Twain", "Jack London", "Herman Melville", "Louisa May Alcott"],
+      ["Pablo Picasso helped found which art movement?", "Cubism", "Surrealism", "Impressionism", "Pop Art"],
+      ["Who wrote The Great Gatsby?", "F. Scott Fitzgerald", "Ernest Hemingway", "John Steinbeck", "William Faulkner"],
+      ["Who is the hero of Homer's Odyssey?", "Odysseus", "Achilles", "Hercules", "Perseus"],
+      ["Who wrote Frankenstein?", "Mary Shelley", "Bram Stoker", "Emily Brontë", "Edgar Allan Poe"],
+      ["Who painted Girl with a Pearl Earring?", "Johannes Vermeer", "Rembrandt", "Jan van Eyck", "Peter Paul Rubens"],
+      ["Andy Warhol is best known for which art movement?", "Pop Art", "Cubism", "Dada", "Baroque"],
+      ["Who wrote the poem 'The Raven'?", "Edgar Allan Poe", "Walt Whitman", "Emily Dickinson", "Robert Frost"],
+      ["Who composed the 'Moonlight' Sonata?", "Ludwig van Beethoven", "Frédéric Chopin", "Wolfgang Amadeus Mozart", "Franz Schubert"],
+      ["Who wrote Charlotte's Web?", "E. B. White", "Beverly Cleary", "Roald Dahl", "Dr. Seuss"],
+      ["What is the syllable pattern of a traditional haiku?", "5-7-5", "7-5-7", "5-5-5", "3-5-3"],
+      ["Which Shakespeare play contains the line 'To be, or not to be'?", "Hamlet", "Macbeth", "King Lear", "Othello"],
+      ["Who wrote Of Mice and Men?", "John Steinbeck", "Ernest Hemingway", "Harper Lee", "William Faulkner"],
+      ["Which artist painted a famous series of Water Lilies?", "Claude Monet", "Édouard Manet", "Pierre-Auguste Renoir", "Edgar Degas"],
+      ["In The Wonderful Wizard of Oz, what color is the brick road?", "Yellow", "Red", "Green", "Gold"],
+      ["Who wrote Fahrenheit 451?", "Ray Bradbury", "George Orwell", "Aldous Huxley", "Isaac Asimov"],
+      ["How many keys does a standard modern piano have?", "88", "76", "92", "64"],
+      ["Who wrote The Cat in the Hat?", "Dr. Seuss", "Maurice Sendak", "Shel Silverstein", "Eric Carle"],
+      ["Which instrument family does the trumpet belong to?", "Brass", "Woodwind", "Strings", "Percussion"]
     ]
   },
   {
-    name: "Sports & Games", color: "#ef4444",
+    name: "Sports & Games", color: "#ef4444", icon: "🏆",
     questions: [
       ["How many players does each soccer team have on the field?", "11", "9", "10", "12"],
       ["How many squares are on a chessboard?", "64", "81", "49", "100"],
@@ -343,11 +531,36 @@ const CATEGORIES = [
       ["The Tour de France is a race in which sport?", "Cycling", "Running", "Motor racing", "Rowing"],
       ["How many dots are on a standard six-sided die in total?", "21", "18", "24", "36"],
       ["Which country created the sport of judo?", "Japan", "China", "South Korea", "Brazil"],
-      ["In baseball, how many strikes make a strikeout?", "3", "2", "4", "5"]
+      ["In baseball, how many strikes make a strikeout?", "3", "2", "4", "5"],
+      ["How many rings are on the Olympic flag?", "5", "4", "6", "7"],
+      ["The Stanley Cup is awarded in which sport?", "Ice hockey", "Basketball", "Baseball", "American football"],
+      ["How many players from each team are on a basketball court at once?", "5", "6", "7", "4"],
+      ["Which country won the first FIFA World Cup in 1930?", "Uruguay", "Brazil", "Argentina", "Italy"],
+      ["Which chess piece moves in an L shape?", "Knight", "Bishop", "Rook", "King"],
+      ["Which sport is played at Wimbledon?", "Tennis", "Golf", "Cricket", "Polo"],
+      ["How many players are on the field for a baseball team on defense?", "9", "10", "11", "8"],
+      ["Which sport uses a shuttlecock?", "Badminton", "Squash", "Table tennis", "Volleyball"],
+      ["In which sport would you see a 'slam dunk'?", "Basketball", "Volleyball", "Tennis", "Water polo"],
+      ["How many players per team are on a volleyball court?", "6", "5", "7", "9"],
+      ["In the U.S. version of Monopoly, which property costs the most?", "Boardwalk", "Park Place", "Marvin Gardens", "Pennsylvania Avenue"],
+      ["How many cards are in a standard deck without jokers?", "52", "48", "54", "56"],
+      ["In golf, what is a score of two under par on a hole called?", "Eagle", "Birdie", "Bogey", "Par"],
+      ["Which country is the birthplace of cricket?", "England", "Australia", "India", "South Africa"],
+      ["How long is an Olympic swimming pool?", "50 meters", "25 meters", "100 meters", "75 meters"],
+      ["In bowling, what is it called when you knock down all ten pins with your first ball?", "Strike", "Spare", "Split", "Gutter"],
+      ["The Super Bowl is the championship game of which sport?", "American football", "Baseball", "Basketball", "Ice hockey"],
+      ["How many periods are in a regulation NHL hockey game?", "3", "2", "4", "5"],
+      ["In English-language Scrabble, how many points is the letter Q worth?", "10", "8", "5", "12"],
+      ["Which martial art's name means 'the way of the foot and fist'?", "Taekwondo", "Karate", "Kung fu", "Judo"],
+      ["How many points is a field goal worth in American football?", "3", "2", "6", "1"],
+      ["In soccer, which player may handle the ball inside their own penalty area?", "Goalkeeper", "Defender", "Captain", "Striker"],
+      ["In which game do players try to get five in a row, calling out letters B-I-N-G-O?", "Bingo", "Yahtzee", "Keno", "Lotto"],
+      ["How many pieces does each player start with in checkers?", "12", "16", "10", "15"],
+      ["Which sport uses the terms 'love', 'deuce' and 'advantage'?", "Tennis", "Badminton", "Squash", "Table tennis"]
     ]
   },
   {
-    name: "Animals & Nature", color: "#ec4899",
+    name: "Animals & Nature", color: "#ec4899", icon: "🐾",
     questions: [
       ["What is the fastest land animal?", "Cheetah", "Pronghorn", "Lion", "Greyhound"],
       ["What is the largest mammal on Earth?", "Blue whale", "African elephant", "Sperm whale", "Giraffe"],
@@ -363,20 +576,43 @@ const CATEGORIES = [
       ["What is the process of a caterpillar becoming a butterfly called?", "Metamorphosis", "Photosynthesis", "Hibernation", "Migration"],
       ["What is the largest species of shark?", "Whale shark", "Great white shark", "Basking shark", "Tiger shark"],
       ["A dolphin is what kind of animal?", "Mammal", "Fish", "Amphibian", "Reptile"],
-      ["Which tree produces acorns?", "Oak", "Maple", "Pine", "Birch"]
+      ["Which tree produces acorns?", "Oak", "Maple", "Pine", "Birch"],
+      ["What is the largest bird in the world?", "Ostrich", "Emu", "Albatross", "Condor"],
+      ["How many legs does an insect have?", "6", "8", "4", "10"],
+      ["Which animal is often called the 'King of the Jungle'?", "Lion", "Tiger", "Gorilla", "Elephant"],
+      ["What is a group of crows called?", "A murder", "A pod", "A pride", "A gaggle"],
+      ["Frogs belong to which group of animals?", "Amphibians", "Reptiles", "Mammals", "Fish"],
+      ["What is the tallest animal in the world?", "Giraffe", "Elephant", "Ostrich", "Moose"],
+      ["What do you call an animal that eats only plants?", "Herbivore", "Carnivore", "Omnivore", "Insectivore"],
+      ["Which part of a plant absorbs water from the soil?", "Roots", "Leaves", "Stem", "Flowers"],
+      ["How many arms does a common starfish have?", "5", "6", "8", "4"],
+      ["What is the largest living reptile?", "Saltwater crocodile", "Komodo dragon", "Green anaconda", "Leatherback turtle"],
+      ["What is a baby goat called?", "A kid", "A calf", "A lamb", "A foal"],
+      ["Which lizard is famous for changing color and moving its eyes independently?", "Chameleon", "Gecko", "Iguana", "Monitor lizard"],
+      ["What pigment gives leaves their green color?", "Chlorophyll", "Carotene", "Melanin", "Hemoglobin"],
+      ["Which of these mammals lays eggs?", "Platypus", "Kangaroo", "Koala", "Armadillo"],
+      ["Which animal is famous for building dams in rivers?", "Beaver", "Otter", "Muskrat", "Badger"],
+      ["What is the largest species of wild cat?", "Tiger", "Lion", "Jaguar", "Leopard"],
+      ["Fish breathe using which organs?", "Gills", "Lungs", "Fins", "Scales"],
+      ["Which bird can fly backwards?", "Hummingbird", "Sparrow", "Kingfisher", "Swallow"],
+      ["What kind of animal is a Komodo dragon?", "Lizard", "Snake", "Crocodile", "Salamander"],
+      ["What is a group of wolves called?", "A pack", "A pride", "A herd", "A school"],
+      ["Which slow-moving mammal spends most of its life hanging upside down in trees?", "Sloth", "Koala", "Lemur", "Opossum"],
+      ["What do bees mainly collect from flowers to make honey?", "Nectar", "Pollen", "Sap", "Dew"],
+      ["Which ocean animal has a shell and is a close relative of the crab?", "Lobster", "Jellyfish", "Starfish", "Sea urchin"],
+      ["Which African burrowing animal uses its long sticky tongue to eat ants and termites?", "Aardvark", "Okapi", "Meerkat", "Tapir"],
+      ["What is a young frog with a tail and gills called?", "A tadpole", "A cub", "A fry", "A kit"]
     ]
   }
 ];
 
 /* ===================================================================== */
 
-const PLAYER_COLORS = ["#0f172a", "#f8fafc", "#facc15", "#06b6d4", "#92400e", "#84cc16"];
-const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-const RING_R = 170, TOKEN_R = 9;
-
-// Computer difficulty: chance of answering a question correctly
+const PLAYER_COLORS = ["#ffffff", "#1f2937", "#facc15", "#22d3ee", "#fb923c", "#a3e635"];
 const CPU_LEVELS = { easy: 0.45, medium: 0.65, hard: 0.85 };
 const PLAYER_TYPES = [["human", "👤 Human"], ["easy", "🤖 Easy"], ["medium", "🤖 Medium"], ["hard", "🤖 Hard"]];
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const C = 220, R_IN = 151, R_OUT = 193, R_MID = 172;
 
 // ---------- Build the ring: 36 spaces, a wedge (HQ) space every 6th ----------
 const SPACES = [];
@@ -387,12 +623,14 @@ for (let k = 0; k < 6; k++) {
   }
 }
 const N = SPACES.length;
+const HALF = 180 / N - 0.7;
 
 // ---------- Helpers ----------
 const $ = id => document.getElementById(id);
 const rad = d => d * Math.PI / 180;
+const f = n => n.toFixed(2);
 const spaceAngle = i => -90 + i * (360 / N);
-const polar = (r, deg) => [200 + r * Math.cos(rad(deg)), 200 + r * Math.sin(rad(deg))];
+const polar = (r, deg) => [C + r * Math.cos(rad(deg)), C + r * Math.sin(rad(deg))];
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -403,28 +641,116 @@ function shuffle(a) {
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+function shade(hex, amt) {           // amt > 0 lightens, < 0 darkens
+  const n = parseInt(hex.slice(1), 16);
+  const t = amt < 0 ? 0 : 255, p = Math.abs(amt);
+  const ch = v => Math.round((t - v) * p + v);
+  const r = ch(n >> 16), g = ch((n >> 8) & 255), b = ch(n & 255);
+  return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
 function slicePath(cx, cy, r, a1, a2) {
   const x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
   const x2 = cx + r * Math.cos(rad(a2)), y2 = cy + r * Math.sin(rad(a2));
-  return `M${cx.toFixed(2)} ${cy.toFixed(2)}L${x1.toFixed(2)} ${y1.toFixed(2)}A${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z`;
+  return `M${f(cx)} ${f(cy)}L${f(x1)} ${f(y1)}A${r} ${r} 0 0 1 ${f(x2)} ${f(y2)}Z`;
 }
-function tokenSVG(p, cx, cy, r) {
-  let s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--panel)"/>`;
+function arcSeg(r1, r2, a1, a2) {
+  const [x1, y1] = polar(r2, a1), [x2, y2] = polar(r2, a2), [x3, y3] = polar(r1, a2), [x4, y4] = polar(r1, a1);
+  return `M${f(x1)} ${f(y1)}A${r2} ${r2} 0 0 1 ${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}A${r1} ${r1} 0 0 0 ${f(x4)} ${f(y4)}Z`;
+}
+
+// ---------- SVG definitions (gradients, shadows) ----------
+function buildDefs() {
+  let d = `<defs>
+    <radialGradient id="boardBg" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#21566a"/><stop offset="1" stop-color="#0a2029"/></radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9a666"/><stop offset=".5" stop-color="#7a4b22"/><stop offset="1" stop-color="#b47a42"/></linearGradient>
+    <radialGradient id="rollGrad" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="205"><stop offset=".66" stop-color="#1c2833"/><stop offset=".82" stop-color="#34495e"/><stop offset="1" stop-color="#5d7389"/></radialGradient>
+    <radialGradient id="tokenSheen" cx="35%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="1.8" flood-color="#000" flood-opacity=".6"/></filter>`;
+  CATEGORIES.forEach((c, k) => {
+    d += `<radialGradient id="cg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="205">
+            <stop offset=".66" stop-color="${shade(c.color, -.45)}"/><stop offset=".82" stop-color="${c.color}"/><stop offset="1" stop-color="${shade(c.color, .3)}"/></radialGradient>
+          <radialGradient id="hg${k}" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="64">
+            <stop offset=".25" stop-color="${shade(c.color, -.3)}"/><stop offset="1" stop-color="${shade(c.color, .15)}"/></radialGradient>`;
+  });
+  return d + `</defs>`;
+}
+
+// ---------- Static board art (drawn once) ----------
+function buildStaticBoard() {
+  let s = "";
+  s += `<circle cx="${C}" cy="${C}" r="217" fill="url(#rim)"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="209" fill="url(#boardBg)" stroke="rgba(0,0,0,.4)" stroke-width="2"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${R_MID}" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="${R_OUT - R_IN + 14}"/>`;
+  for (const r of [92, 118]) s += `<circle cx="${C}" cy="${C}" r="${r}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
+
+  // Spokes from hub to each wedge space
   for (let k = 0; k < 6; k++) {
-    if (p.wedges.has(k)) {
-      s += `<path d="${slicePath(cx, cy, r - 1.5, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}"/>`;
+    const a = spaceAngle(k * 6);
+    for (let j = 0; j < 5; j++) {
+      const [x, y] = polar(80 + j * 13.5, a);
+      s += `<rect x="-6" y="-9.5" width="12" height="19" rx="3.5" fill="url(#cg${(k + j + 1) % 6})"
+              stroke="rgba(0,0,0,.4)" stroke-width="1" transform="translate(${f(x)} ${f(y)}) rotate(${a})"/>`;
+      s += `<rect x="-6" y="-9.5" width="12" height="19" rx="3.5" fill="${CATEGORIES[(k + j + 1) % 6].color}" opacity=".75"
+              transform="translate(${f(x)} ${f(y)}) rotate(${a})"/>`;
     }
   }
-  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="4.5"/>`;
-  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.color}" stroke-width="2.6"/>`;
+
+  // Ring spaces
+  SPACES.forEach((sp, i) => {
+    const a = spaceAngle(i);
+    const hq = sp.type === "hq";
+    const fill = sp.type === "roll" ? "url(#rollGrad)" : `url(#cg${sp.cat})`;
+    s += `<path d="${arcSeg(hq ? R_IN - 8 : R_IN, hq ? R_OUT + 7 : R_OUT, a - HALF, a + HALF)}" fill="${fill}"
+            stroke="rgba(0,0,0,.45)" stroke-width="1.2"/>`;
+    const [x, y] = polar(R_MID, a);
+    if (sp.type === "roll") {
+      s += `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 90})" opacity=".95">
+              <rect x="-8" y="-8" width="16" height="16" rx="4" fill="#f8f4ea"/>
+              ${[[-4, -4], [4, -4], [0, 0], [-4, 4], [4, 4]].map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.7" fill="#1f2937"/>`).join("")}
+            </g>`;
+    } else if (hq) {
+      const c = CATEGORIES[sp.cat];
+      s += `<circle cx="${f(x)}" cy="${f(y)}" r="14.5" fill="#fbf7ee" stroke="${shade(c.color, -.35)}" stroke-width="2.5" filter="url(#shadow)"/>`;
+      s += `<text x="${f(x)}" y="${f(y + 5.5)}" text-anchor="middle" font-size="15">${c.icon}</text>`;
+    }
+  });
+
+  // Hub
+  s += `<circle cx="${C}" cy="${C}" r="68" fill="rgba(0,0,0,.45)"/>`;
+  for (let k = 0; k < 6; k++) {
+    s += `<path d="${slicePath(C, C, 63, -120 + k * 60, -60 + k * 60)}" fill="url(#hg${k})" stroke="#0a2029" stroke-width="2.5"/>`;
+    const [x, y] = polar(43, -90 + k * 60);
+    s += `<text x="${f(x)}" y="${f(y + 6)}" text-anchor="middle" font-size="17">${CATEGORIES[k].icon}</text>`;
+  }
+  s += `<circle cx="${C}" cy="${C}" r="21" fill="url(#rim)" stroke="#0a2029" stroke-width="2.5"/>`;
+  s += `<text x="${C}" y="${C + 7.5}" text-anchor="middle" font-size="22" fill="#fff4c9">★</text>`;
   return s;
 }
-function miniToken(p) {
-  return `<svg width="30" height="30" viewBox="0 0 30 30">${tokenSVG(p, 15, 15, 11)}</svg>`;
+
+function tokenSVG(p, cx, cy, r) {
+  let s = `<g filter="url(#shadow)"><circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="#f6f1e7"/>`;
+  for (let k = 0; k < 6; k++) {
+    if (p.wedges.has(k)) s += `<path d="${slicePath(cx, cy, r - 2.4, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}" stroke="#f6f1e7" stroke-width=".8"/>`;
+  }
+  s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="url(#tokenSheen)"/>`;
+  s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="none" stroke="${p.color}" stroke-width="${r > 10 ? 3.2 : 2.6}"/>`;
+  s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r + 1.7}" fill="none" stroke="rgba(0,0,0,.7)" stroke-width="1"/></g>`;
+  return s;
 }
+function miniToken(p, size = 30) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 30 30" style="overflow:visible;flex:none">${tokenSVG(p, 15, 15, 12)}</svg>`;
+}
+
+// ---------- Initial page setup ----------
+$("svgDefs").innerHTML = buildDefs();
+const BOARD_STATIC = buildStaticBoard();
+$("logoSlices").innerHTML = CATEGORIES.map((c, k) =>
+  `<path d="${slicePath(27, 27, 22, -120 + k * 60, -60 + k * 60)}" fill="${c.color}" stroke="#f6f1e7" stroke-width="1.5"/>`).join("");
 
 // ---------- State ----------
 let state = null;
+let currentQ = null;
+let cpuTimer = null;
 
 // ---------- Setup screen ----------
 function renderNameInputs() {
@@ -436,7 +762,7 @@ function renderNameInputs() {
     const type = old[i] ? old[i].type : (i === 1 ? "medium" : "human");
     return `
     <div class="name-row">
-      <span class="swatch" style="background:${PLAYER_COLORS[i]}"></span>
+      <span class="swatch" style="border-color:${PLAYER_COLORS[i]}"></span>
       <input type="text" maxlength="20" placeholder="Player ${i + 1}" value="${esc(old[i] ? old[i].name : "")}">
       <select aria-label="Player ${i + 1} type">
         ${PLAYER_TYPES.map(([v, label]) => `<option value="${v}"${v === type ? " selected" : ""}>${label}</option>`).join("")}
@@ -467,14 +793,18 @@ function startGame(configs) {
   state = {
     players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
     cur: 0,
-    phase: "roll",      // roll | rolling | move | question | over
+    phase: "roll",      // roll | rolling | move | moving | question | over
     targets: [],
+    roll: 0,
+    hubPlayer: null,
     decks: CATEGORIES.map(() => []),
     status: "Roll the die to begin!"
   };
   $("setup").style.display = "none";
   $("game").style.display = "grid";
   $("winOverlay").classList.remove("show");
+  $("qOverlay").classList.remove("show");
+  renderDie(6);
   render();
 }
 
@@ -485,118 +815,155 @@ $("newGameBtn").addEventListener("click", () => {
   $("qOverlay").classList.remove("show");
   $("game").style.display = "none";
   $("setup").style.display = "block";
-  $("die").textContent = "🎲";
 });
 $("playAgainBtn").addEventListener("click", () => {
   startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })));
-  $("die").textContent = "🎲";
 });
 
 // ---------- Rendering ----------
+const displayName = p => (p.cpu ? "🤖 " : "") + esc(p.name);
+function curPlayer() { return state.players[state.cur]; }
+function isCpuTurn() { return !!(state && curPlayer().cpu); }
+
 function render() {
   renderBoard();
   renderPanel();
   cpuStep();
 }
-const displayName = p => (p.cpu ? "🤖 " : "") + esc(p.name);
+
+function renderDie(v) {
+  $("die").innerHTML = Array.from({ length: 9 }, (_, i) => `<span class="${PIPS[v].includes(i) ? "on" : ""}"></span>`).join("");
+}
 
 function renderBoard() {
-  let s = "";
-  // Track
-  s += `<circle cx="200" cy="200" r="${RING_R}" fill="none" stroke="var(--line)" stroke-width="26"/>`;
+  let s = BOARD_STATIC;
 
-  // Hub
-  for (let k = 0; k < 6; k++) {
-    s += `<path d="${slicePath(200, 200, 54, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}" stroke="var(--panel)" stroke-width="2"/>`;
-  }
-  s += `<circle cx="200" cy="200" r="24" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>`;
-  s += `<text x="200" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">HUB</text>`;
-
-  // Spaces
-  SPACES.forEach((sp, i) => {
-    const [x, y] = polar(RING_R, spaceAngle(i));
-    const isT = state.phase === "move" && state.targets.includes(i) && !isCpuTurn();
-    const r = sp.type === "hq" ? 17 : 12;
-    let g = `<g data-i="${i}" class="${isT ? "space-target" : ""}">`;
-    if (isT) g += `<circle class="glow" cx="${x}" cy="${y}" r="${r + 6}" fill="none" stroke="var(--ink)" stroke-width="3"/>`;
-    if (sp.type === "roll") {
-      g += `<circle cx="${x}" cy="${y}" r="${r}" fill="#475569" stroke="var(--panel)" stroke-width="2"/>`;
-      g += `<text x="${x}" y="${y + 6}" text-anchor="middle" font-size="17" fill="#fff">⚄</text>`;
-    } else {
-      g += `<circle cx="${x}" cy="${y}" r="${r}" fill="${CATEGORIES[sp.cat].color}" stroke="var(--panel)" stroke-width="2"/>`;
-      if (sp.type === "hq") g += `<text x="${x}" y="${y + 6}" text-anchor="middle" font-size="17" fill="#fff">★</text>`;
-    }
-    if (isT) g += `<circle cx="${x}" cy="${y}" r="${r + 8}" fill="transparent"/>`; // bigger tap area
-    g += `</g>`;
-    s += g;
-  });
-
-  // Tokens — grouped by space so they fan out instead of stacking
-  const groups = {};
-  state.players.forEach((p, i) => (groups[p.pos] ||= []).push(i));
-  for (const [pos, ids] of Object.entries(groups)) {
-    ids.forEach((pi, j) => {
-      const off = (j - (ids.length - 1) / 2) * 7.5;
-      const [x, y] = polar(RING_R - 32, spaceAngle(+pos) + off);
-      const p = state.players[pi];
-      if (pi === state.cur && state.phase !== "over") {
-        s += `<circle class="active-ring" cx="${x}" cy="${y}" r="${TOKEN_R + 4.5}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3"/>`;
-      }
-      s += tokenSVG(p, x, y, TOKEN_R);
+  // Highlight the two spaces you can move to
+  if (state.phase === "move") {
+    state.targets.forEach(i => {
+      const a = spaceAngle(i);
+      s += `<g class="target" data-i="${i}">
+              <path class="glow" d="${arcSeg(R_IN - 10, R_OUT + 9, a - HALF - 1, a + HALF + 1)}" fill="rgba(255,255,255,.22)" stroke="#fff" stroke-width="3"/>
+            </g>`;
     });
   }
-  $("board").innerHTML = s;
+
+  // Tokens, grouped by space (or the Hub) so they cluster instead of stacking
+  const groups = {};
+  state.players.forEach((p, i) => {
+    const key = state.hubPlayer === i ? "hub" : p.pos;
+    (groups[key] ||= []).push(i);
+  });
+  let tokens = "", currentTok = "";
+  for (const [key, ids] of Object.entries(groups)) {
+    const [bx, by] = key === "hub" ? [C, C] : polar(R_MID, spaceAngle(+key));
+    const n = ids.length, r = n === 1 ? 12.5 : 9.5, spread = n === 1 ? 0 : (n <= 3 ? 9 : 12);
+    ids.forEach((pi, j) => {
+      const ang = rad(-90 + j * 360 / n);
+      const x = bx + spread * Math.cos(ang), y = by + spread * Math.sin(ang);
+      let t = "";
+      if (pi === state.cur && state.phase !== "over") {
+        t += `<circle class="halo" cx="${f(x)}" cy="${f(y)}" r="${r + 5.5}" fill="none" stroke="#f5c451" stroke-width="2.4" stroke-dasharray="4 3"/>`;
+      }
+      t += tokenSVG(state.players[pi], x, y, r);
+      if (pi === state.cur) currentTok = t; else tokens += t;
+    });
+  }
+  $("board").innerHTML = s + tokens + currentTok;
 }
 
 function renderPanel() {
-  const p = state.players[state.cur];
-  const allWedges = p.wedges.size === 6;
-  $("turnBanner").innerHTML = `${miniToken(p).replace('<svg', '<svg style="vertical-align:middle;margin-right:6px"')}${displayName(p)}'s turn`;
+  const p = curPlayer();
+  $("turnToken").innerHTML = miniToken(p, 44);
+  $("turnName").innerHTML = displayName(p);
   $("status").innerHTML = state.status;
 
   const rb = $("rollBtn");
-  rb.textContent = p.cpu && state.phase !== "over" ? "🤖 Computer is playing…" : allWedges ? "Head to the Hub 🏁" : "Roll";
+  rb.textContent = p.cpu && state.phase !== "over" ? "🤖 Computer is playing…"
+    : p.wedges.size === 6 ? "Head to the Hub 🏁" : "Roll the die";
   rb.disabled = state.phase !== "roll" || !!p.cpu;
 
-  // Direction buttons as an alternative to tapping the board
   const db = $("dirButtons");
   if (state.phase === "move" && !p.cpu) {
     const [cw, ccw] = state.targets;
-    db.innerHTML = `<button class="secondary" data-t="${ccw}">↺ Counter-clockwise</button>` +
-      (cw !== ccw ? `<button class="secondary" data-t="${cw}">Clockwise ↻</button>` : "");
+    db.innerHTML = `<button class="btn ghost" data-t="${ccw}">↺ Counter-clockwise</button>
+                    <button class="btn ghost" data-t="${cw}">Clockwise ↻</button>`;
   } else {
     db.innerHTML = "";
   }
 
   $("players").innerHTML = state.players.map((pl, i) => `
-    <li class="${i === state.cur ? "current" : ""}">
+    <li class="${i === state.cur ? "current" : ""}" data-p="${i}">
       ${miniToken(pl)}
       <span class="pname">${displayName(pl)}</span>
-      <span class="pcount">${pl.wedges.size}/6</span>
+      <span class="wedges">${CATEGORIES.map((c, k) =>
+        `<i class="${pl.wedges.has(k) ? "got" : ""}" title="${esc(c.name)}" style="border-color:${c.color};color:${c.color};background:${pl.wedges.has(k) ? c.color : "transparent"}"></i>`).join("")}</span>
     </li>`).join("");
 
-  $("legend").innerHTML = CATEGORIES.map(c => `<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("");
+  $("legend").innerHTML = CATEGORIES.map(c =>
+    `<span><i style="background:${c.color}">${c.icon}</i>${esc(c.name)}</span>`).join("");
+}
+
+let toastTimer = null;
+function showToast(html) {
+  const t = $("toast");
+  t.innerHTML = html;
+  t.classList.remove("show");
+  void t.offsetWidth;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2300);
+}
+
+function confetti() {
+  const cv = $("confetti"), ctx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  const W = innerWidth, H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+  const parts = Array.from({ length: 200 }, () => ({
+    x: Math.random() * W, y: -20 - Math.random() * H * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * Math.PI, vr: (Math.random() - .5) * .3,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8,
+    c: CATEGORIES[Math.floor(Math.random() * 6)].color
+  }));
+  const start = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.x += p.vx; p.y += p.vy; p.vy += .03; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (t - start < 5500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+  })(start);
 }
 
 // ---------- Turn flow ----------
-function curPlayer() { return state.players[state.cur]; }
-
 function rollOrHub() {
   if (state.phase !== "roll") return;
-  if (curPlayer().wedges.size === 6) {
-    const cat = Math.floor(Math.random() * 6);
-    askQuestion(cat, "final");
+  const p = curPlayer();
+  if (p.wedges.size === 6) {
+    state.hubPlayer = state.cur;
+    state.status = `${displayName(p)} heads to the Hub for the final question!`;
+    renderBoard(); renderPanel();
+    askQuestion(Math.floor(Math.random() * 6), "final");
     return;
   }
   state.phase = "rolling";
   renderPanel();
+  $("die").classList.add("rolling");
+  const s = state;
   let ticks = 0;
   const iv = setInterval(() => {
-    $("die").textContent = DIE_FACES[Math.floor(Math.random() * 6)];
-    if (++ticks >= 9) {
+    if (state !== s) { clearInterval(iv); $("die").classList.remove("rolling"); return; }
+    renderDie(1 + Math.floor(Math.random() * 6));
+    if (++ticks >= 10) {
       clearInterval(iv);
+      $("die").classList.remove("rolling");
       const r = 1 + Math.floor(Math.random() * 6);
-      $("die").textContent = DIE_FACES[r - 1];
+      renderDie(r);
+      state.roll = r;
       const pos = curPlayer().pos;
       state.targets = [(pos + r) % N, (pos - r + N) % N];
       state.phase = "move";
@@ -605,18 +972,31 @@ function rollOrHub() {
         : `You rolled a <b>${r}</b>. Tap a glowing space to move there.`;
       render();
     }
-  }, 60);
+  }, 70);
 }
 
 function moveTo(i) {
   if (state.phase !== "move" || !state.targets.includes(i)) return;
-  const p = curPlayer();
-  p.pos = i;
+  const dir = i === state.targets[0] ? 1 : -1;
+  const steps = state.roll, s = state, p = curPlayer();
+  state.phase = "moving";
   state.targets = [];
+  renderPanel();
+  let k = 0;
+  const iv = setInterval(() => {
+    if (state !== s) { clearInterval(iv); return; }
+    p.pos = (p.pos + dir + N) % N;
+    renderBoard();
+    if (++k >= steps) { clearInterval(iv); land(i); }
+  }, 150);
+}
+
+function land(i) {
   const sp = SPACES[i];
   if (sp.type === "roll") {
     state.phase = "roll";
-    state.status = "🎲 Free roll! Go again.";
+    state.status = `🎲 Free roll! ${displayName(curPlayer())} goes again.`;
+    showToast("🎲 Free roll!");
     render();
   } else {
     render();
@@ -630,7 +1010,6 @@ function drawQuestion(cat) {
   return CATEGORIES[cat].questions[deck.pop()];
 }
 
-let currentQ = null;
 function askQuestion(cat, mode) {
   state.phase = "question";
   renderPanel();
@@ -638,18 +1017,21 @@ function askQuestion(cat, mode) {
   const choices = shuffle([correct, ...wrong]);
   currentQ = { cat, mode, correct, choices, answered: false };
 
-  const c = CATEGORIES[cat];
-  $("qBadge").textContent = c.name;
-  $("qBadge").style.background = c.color;
-  const p = curPlayer();
-  $("qTag").textContent =
-    mode === "final" ? "🏁 FINAL QUESTION" :
-    mode === "hq" ? (p.wedges.has(cat) ? "★ Wedge space (already earned)" : "★ WEDGE QUESTION") : "";
+  const c = CATEGORIES[cat], p = curPlayer();
+  $("qHead").style.background = `linear-gradient(135deg, ${shade(c.color, .08)}, ${shade(c.color, -.4)})`;
+  $("qIcon").textContent = c.icon;
+  $("qCat").textContent = c.name;
+  const tag = mode === "final" ? "🏁 FINAL QUESTION — ANSWER TO WIN"
+    : mode === "hq" ? (p.wedges.has(cat) ? "★ WEDGE SPACE (ALREADY EARNED)" : "★ WEDGE QUESTION")
+    : `${p.cpu ? "🤖 " : ""}${p.name.toUpperCase()}'S QUESTION`;
+  $("qTag").textContent = tag;
   $("qText").textContent = q;
   $("qChoices").innerHTML = choices.map((ch, i) =>
-    `<button data-c="${i}"><span class="key">${i + 1}</span>${esc(ch)}</button>`).join("");
+    `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
   $("qFeedback").innerHTML = p.cpu ? `<span style="color:var(--muted)">🤖 ${esc(p.name)} is thinking…</span>` : "";
   $("qContinue").style.display = "none";
+  const card = $("qCard");
+  card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
   $("qOverlay").classList.add("show");
   cpuStep();
 }
@@ -657,20 +1039,18 @@ function askQuestion(cat, mode) {
 function answer(i) {
   if (!currentQ || currentQ.answered) return;
   currentQ.answered = true;
-  const picked = currentQ.choices[i];
-  const ok = picked === currentQ.correct;
+  const ok = currentQ.choices[i] === currentQ.correct;
   currentQ.ok = ok;
   [...$("qChoices").children].forEach((b, j) => {
     b.disabled = true;
-    b.style.opacity = 1;
     if (currentQ.choices[j] === currentQ.correct) b.classList.add("correct");
     else if (j === i) b.classList.add("wrong");
   });
-  const who = curPlayer().cpu ? `${esc(curPlayer().name)} got it right! ` : "";
+  const p = curPlayer();
   $("qFeedback").innerHTML = ok
-    ? `<span style="color:var(--good)">✔ ${who || "Correct!"}</span>`
-    : `<span style="color:var(--bad)">✘ ${curPlayer().cpu ? esc(curPlayer().name) + " missed. " : ""}The answer was ${esc(currentQ.correct)}.</span>`;
-  if (curPlayer().cpu) {
+    ? `<span style="color:var(--good)">✔ ${p.cpu ? esc(p.name) + " got it right!" : "Correct!"}</span>`
+    : `<span style="color:var(--bad)">✘ ${p.cpu ? esc(p.name) + " missed. " : ""}The answer was ${esc(currentQ.correct)}.</span>`;
+  if (p.cpu) {
     cpuStep();
   } else {
     $("qContinue").style.display = "block";
@@ -690,14 +1070,20 @@ function resolveQuestion() {
     render();
     $("winText").textContent = `${p.name} wins!`;
     $("winOverlay").classList.add("show");
+    confetti();
     return;
   }
+  if (mode === "final") state.hubPlayer = null;   // token returns to the ring
 
+  let bumped = null;
   if (ok) {
     let msg = "Correct! Roll again.";
     if (mode === "hq" && !p.wedges.has(cat)) {
       p.wedges.add(cat);
-      msg = `🧀 You earned the <b style="color:${CATEGORIES[cat].color}">${esc(CATEGORIES[cat].name)}</b> wedge!`;
+      bumped = state.cur;
+      const c = CATEGORIES[cat];
+      showToast(`🧀 ${esc(p.name)} earned the ${c.icon} ${esc(c.name)} wedge!`);
+      msg = `🧀 Earned the <b style="color:${c.color}">${esc(c.name)}</b> wedge!`;
       msg += p.wedges.size === 6 ? " That's all six — head to the Hub!" : " Roll again.";
     }
     state.status = msg;
@@ -705,25 +1091,25 @@ function resolveQuestion() {
     const prev = p.name;
     state.cur = (state.cur + 1) % state.players.length;
     state.status = state.players.length > 1
-      ? `${esc(prev)} missed. ${esc(curPlayer().name)}, you're up!`
+      ? `${esc(prev)} missed. ${displayName(curPlayer())}, you're up!`
       : "Missed that one. Roll again.";
     if (mode === "final") state.status = `So close, ${esc(prev)}! ` + state.status;
   }
   state.phase = "roll";
   render();
+  if (bumped !== null) {
+    const li = document.querySelector(`#players li[data-p="${bumped}"]`);
+    if (li) li.classList.add("bump");
+  }
 }
 
 // ---------- Computer player ----------
-let cpuTimer = null;
-function isCpuTurn() { return !!(state && curPlayer().cpu); }
-
 function cpuSchedule(fn, ms) {
   clearTimeout(cpuTimer);
   const s = state;
   cpuTimer = setTimeout(() => { cpuTimer = null; if (state === s) fn(); }, ms);
 }
 
-// Decide what the computer should do next, based on the current phase.
 function cpuStep() {
   if (!state || state.phase === "over" || !isCpuTurn()) return;
   if (state.phase === "roll") cpuSchedule(rollOrHub, 1000);
@@ -784,10 +1170,12 @@ $("qContinue").addEventListener("click", resolveQuestion);
 
 document.addEventListener("keydown", e => {
   if (!state || e.target.tagName === "INPUT" || isCpuTurn()) return;
+  const k = e.key.toLowerCase();
   if (state.phase === "question") {
-    if (["1", "2", "3", "4"].includes(e.key)) answer(+e.key - 1);
+    const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
+    if (k.length === 1 && idx >= 0) answer(idx);
     else if (e.key === "Enter" && currentQ && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
-  } else if (state.phase === "roll" && (e.key === "r" || e.key === "R")) {
+  } else if (state.phase === "roll" && k === "r") {
     rollOrHub();
   }
 });
