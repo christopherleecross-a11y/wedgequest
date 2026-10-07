@@ -236,12 +236,6 @@
   .pick-grid span { font-size: 22px; }
   @media (max-width: 420px) { .pick-grid { grid-template-columns: 1fr; } }
   .say-hint { color: var(--muted); font-weight: 700; margin: 0 0 12px; }
-  .answer-box { border: 2px dashed rgba(255,255,255,.25); border-radius: 14px; padding: 14px; text-align: center;
-                font-family: var(--display); font-size: 1.35rem; font-weight: 600; animation: pop .25s; }
-  .answer-box small { display: block; font-family: var(--body); font-size: .75rem; letter-spacing: .1em; color: var(--muted); font-weight: 800; margin-bottom: 4px; }
-  .judge { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .btn.good { background: linear-gradient(#86efac, #22c55e); color: #04241a; box-shadow: 0 4px 0 #15803d, 0 8px 18px rgba(0,0,0,.3); }
-  .btn.bad { background: linear-gradient(#fca5a5, #ef4444); color: #2a0606; box-shadow: 0 4px 0 #b91c1c, 0 8px 18px rgba(0,0,0,.3); }
   #winCard { text-align: center; padding: 28px 22px; }
   #winCard .trophy { font-size: 72px; animation: float 2s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-8px); } }
@@ -305,11 +299,6 @@
     <label>Players &amp; teams</label>
     <div id="nameInputs"></div>
     <p class="hint">Set any player to 🤖 to play against the computer. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
-    <label for="answerMode">Answer style</label>
-    <select id="answerMode">
-      <option value="classic" selected>Classic — say it out loud, then reveal</option>
-      <option value="mc">Multiple choice — pick A, B, C or D</option>
-    </select>
     <button class="btn" id="startBtn">Start Game</button>
   </div>
 </section>
@@ -349,9 +338,8 @@
         <li>Die spaces give you a free roll.</li>
         <li>Land in the Hub before you have all six wedges and you choose the category.</li>
         <li>With all six wedges, land in the Hub by exact count. Opponents pick the category of your final question. Miss it and you must leave the Hub and come back.</li>
-        <li><b>Classic answers:</b> say your answer aloud, tap <b>Show answer</b>, then mark it right or wrong.</li>
         <li>🤖 Computer players take their turns automatically.</li>
-        <li>Keyboard: <b>R</b> to roll. Classic: <b>Enter</b> to reveal, <b>Y</b>/<b>N</b> to mark. Multiple choice: <b>1–4</b> or <b>A–D</b>, <b>Enter</b> to continue.</li>
+        <li>Keyboard: <b>R</b> to roll, <b>1–4</b> or <b>A–D</b> to answer, <b>Enter</b> to continue.</li>
       </ul>
     </details>
     <div style="margin-top:16px">
@@ -942,14 +930,13 @@ $("startBtn").addEventListener("click", () => {
     if (r.cpu) { cpuN++; r.name = cpuCount > 1 ? `Computer ${cpuN}` : "Computer"; }
     else r.name = `Player ${i + 1}`;
   });
-  startGame(rows, $("answerMode").value);
+  startGame(rows);
 });
 
-function startGame(configs, mode) {
+function startGame(configs) {
   clearTimeout(cpuTimer);
   state = {
     players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
-    mode,               // "classic" | "mc"
     cur: 0,
     phase: "roll",      // roll | rolling | move | moving | pick | picked | question | over
     dests: new Map(),
@@ -975,7 +962,7 @@ $("newGameBtn").addEventListener("click", () => {
   $("setup").style.display = "block";
 });
 $("playAgainBtn").addEventListener("click", () => {
-  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })), state.mode);
+  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })));
 });
 
 // ---------- Rendering ----------
@@ -1203,7 +1190,7 @@ function askQuestion(cat, mode) {
   renderPanel();
   const [q, correct, ...wrong] = drawQuestion(cat);
   const choices = shuffle([correct, ...wrong]);
-  currentQ = { cat, mode, correct, choices, answered: false, revealed: false };
+  currentQ = { cat, mode, correct, choices, answered: false };
 
   const c = CATEGORIES[cat], p = curPlayer();
   $("qHead").style.background = `linear-gradient(135deg, ${shade(c.color, .08)}, ${shade(c.color, -.4)})`;
@@ -1223,29 +1210,12 @@ function askQuestion(cat, mode) {
 }
 
 function renderChoices() {
-  const p = curPlayer(), box = $("qChoices"), q = currentQ;
-  if (state.mode === "mc") {
-    box.innerHTML = q.choices.map((ch, i) =>
-      `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
-    return;
-  }
-  if (!q.revealed) {
-    box.innerHTML = p.cpu ? "" :
-      `<p class="say-hint">Say your answer out loud, then reveal it.</p>
-       <button class="btn" data-act="reveal" style="width:100%">Show answer</button>`;
-  } else {
-    box.innerHTML = `<div class="answer-box"><small>ANSWER</small>${esc(q.correct)}</div>` +
-      (p.cpu || q.answered ? "" :
-        `<div class="judge">
-           <button class="btn good" data-act="right">✓ Got it right</button>
-           <button class="btn bad" data-act="wrong">✗ Got it wrong</button>
-         </div>`);
-  }
+  $("qChoices").innerHTML = currentQ.choices.map((ch, i) =>
+    `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
 }
 
-// Multiple-choice answer
 function answer(i) {
-  if (!currentQ || currentQ.answered || state.mode !== "mc") return;
+  if (!currentQ || currentQ.answered) return;
   currentQ.answered = true;
   const ok = currentQ.choices[i] === currentQ.correct;
   currentQ.ok = ok;
@@ -1264,19 +1234,6 @@ function answer(i) {
     $("qContinue").style.display = "block";
     $("qContinue").focus();
   }
-}
-
-// Classic: reveal, then players mark it right or wrong
-function reveal() {
-  if (!currentQ || currentQ.revealed || state.mode !== "classic") return;
-  currentQ.revealed = true;
-  renderChoices();
-}
-function judge(ok) {
-  if (!currentQ || !currentQ.revealed || currentQ.answered) return;
-  currentQ.answered = true;
-  currentQ.ok = ok;
-  resolveQuestion();
 }
 
 function resolveQuestion() {
@@ -1375,16 +1332,7 @@ function cpuAnswer() {
     const wrongIdx = currentQ.choices.map((_, i) => i).filter(i => i !== correctIdx);
     pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
   }
-  if (state.mode === "mc") { answer(pick); return; }
-  // Classic: the computer "says" its answer, then the real answer is revealed
-  const ok = pick === correctIdx;
-  currentQ.revealed = true;
-  currentQ.answered = true;
-  currentQ.ok = ok;
-  renderChoices();
-  $("qFeedback").innerHTML = `🤖 ${esc(p.name)} says: “${esc(currentQ.choices[pick])}” — ` +
-    (ok ? `<span style="color:var(--good)">✔ correct!</span>` : `<span style="color:var(--bad)">✘ wrong</span>`);
-  cpuStep();
+  answer(pick);
 }
 
 // ---------- Events ----------
@@ -1401,12 +1349,8 @@ $("pickGrid").addEventListener("click", e => {
 });
 $("qChoices").addEventListener("click", e => {
   if (isCpuTurn()) return;
-  const b = e.target.closest("button");
-  if (!b) return;
-  if (b.dataset.c !== undefined) answer(+b.dataset.c);
-  else if (b.dataset.act === "reveal") reveal();
-  else if (b.dataset.act === "right") judge(true);
-  else if (b.dataset.act === "wrong") judge(false);
+  const b = e.target.closest("button[data-c]");
+  if (b) answer(+b.dataset.c);
 });
 $("qContinue").addEventListener("click", resolveQuestion);
 
@@ -1414,16 +1358,9 @@ document.addEventListener("keydown", e => {
   if (!state || e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || isCpuTurn()) return;
   const k = e.key.toLowerCase();
   if (state.phase === "question" && currentQ) {
-    if (state.mode === "mc") {
-      const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
-      if (k.length === 1 && idx >= 0) answer(idx);
-      else if (e.key === "Enter" && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
-    } else if (!currentQ.revealed) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); reveal(); }
-    } else if (!currentQ.answered) {
-      if (k === "y" || k === "1") judge(true);
-      else if (k === "n" || k === "2") judge(false);
-    }
+    const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
+    if (k.length === 1 && idx >= 0) answer(idx);
+    else if (e.key === "Enter" && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
   } else if (state.phase === "roll" && k === "r") {
     rollDie();
   }
