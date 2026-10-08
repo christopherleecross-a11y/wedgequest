@@ -306,7 +306,7 @@
 <!-- ================= GAME ================= -->
 <main id="game">
   <div class="panel" id="boardWrap">
-    <svg id="board" viewBox="0 0 440 440" aria-label="Game board"></svg>
+    <svg id="board" viewBox="-12 -12 464 464" aria-label="Game board"></svg>
   </div>
 
   <div class="panel">
@@ -689,6 +689,7 @@ const RING_N = 42, SPOKE_LEN = 5;
 // Between each pair of wedge spaces on the ring: 6 spaces, two of them "roll again"
 const RING_PATTERN = ["cat", "roll", "cat", "cat", "roll", "cat"];
 const RING_HALF = 180 / RING_N - 0.6;
+const RIM_OUT = 230, LABEL_R = 220, LABEL_SPAN = 27;   // rim with category labels
 
 // ---------- Helpers ----------
 const $ = id => document.getElementById(id);
@@ -792,6 +793,7 @@ function buildDefs() {
     <radialGradient id="boardBg" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#21566a"/><stop offset="1" stop-color="#0a2029"/></radialGradient>
     <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9a666"/><stop offset=".5" stop-color="#7a4b22"/><stop offset="1" stop-color="#b47a42"/></linearGradient>
     <radialGradient id="rollGrad" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="200"><stop offset=".79" stop-color="#1c2833"/><stop offset=".89" stop-color="#34495e"/><stop offset="1" stop-color="#5d7389"/></radialGradient>
+    <radialGradient id="labelSheen" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="${RIM_OUT}"><stop offset=".91" stop-color="#000" stop-opacity=".3"/><stop offset=".96" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".3"/></radialGradient>
     <radialGradient id="tokenSheen" cx="35%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient>
     <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="1.8" flood-color="#000" flood-opacity=".6"/></filter>`;
   CATEGORIES.forEach((c, k) => {
@@ -808,7 +810,24 @@ function buildDefs() {
 // ---------- Static board art (drawn once) ----------
 function buildStaticBoard() {
   let s = "";
-  s += `<circle cx="${C}" cy="${C}" r="217" fill="url(#rim)"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${RIM_OUT}" fill="url(#rim)"/>`;
+
+  // Category name labels on the rim, right outside each wedge space
+  let paths = "";
+  for (let k = 0; k < 6; k++) {
+    const a = spokeAngle(k), c = CATEGORIES[k];
+    const bottom = Math.sin(rad(a)) > 0.1;          // flip text on the lower half so it reads upright
+    const [sx, sy] = polar(LABEL_R, bottom ? a + LABEL_SPAN : a - LABEL_SPAN);
+    const [ex, ey] = polar(LABEL_R, bottom ? a - LABEL_SPAN : a + LABEL_SPAN);
+    paths += `<path id="lblPath${k}" d="M${f(sx)} ${f(sy)}A${LABEL_R} ${LABEL_R} 0 0 ${bottom ? 0 : 1} ${f(ex)} ${f(ey)}"/>`;
+    s += `<path d="${arcSeg(210, RIM_OUT - 1.5, a - LABEL_SPAN, a + LABEL_SPAN)}" fill="${c.color}" stroke="rgba(0,0,0,.45)" stroke-width="1.2"/>`;
+    s += `<path d="${arcSeg(210, RIM_OUT - 1.5, a - LABEL_SPAN, a + LABEL_SPAN)}" fill="url(#labelSheen)"/>`;
+    s += `<text font-family="Fredoka, Nunito, sans-serif" font-size="11.5" font-weight="600" fill="#fff" letter-spacing=".6"
+            stroke="rgba(0,0,0,.35)" stroke-width="2" paint-order="stroke" dominant-baseline="central">
+            <textPath href="#lblPath${k}" startOffset="50%" text-anchor="middle">${c.icon} ${esc(c.name.toUpperCase())}</textPath></text>`;
+  }
+  s = `<defs>${paths}</defs>` + s;
+
   s += `<circle cx="${C}" cy="${C}" r="209" fill="url(#boardBg)" stroke="rgba(0,0,0,.4)" stroke-width="2"/>`;
   s += `<circle cx="${C}" cy="${C}" r="${R_MID}" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="${R_OUT - R_IN + 14}"/>`;
 
@@ -837,8 +856,10 @@ function buildStaticBoard() {
             </g>`;
     } else if (hq) {
       const c = CATEGORIES[n.cat];
-      s += `<circle cx="${f(x)}" cy="${f(y)}" r="13.5" fill="#fbf7ee" stroke="${shade(c.color, -.35)}" stroke-width="2.5" filter="url(#shadow)"/>`;
-      s += `<text x="${f(x)}" y="${f(y + 5)}" text-anchor="middle" font-size="14">${c.icon}</text>`;
+      s += `<path d="${arcSeg(R_IN - 8, R_OUT + 7, a - RING_HALF, a + RING_HALF)}" fill="none" stroke="#fff" stroke-width="2.2" opacity=".85"/>`;
+      s += `<circle cx="${f(x)}" cy="${f(y)}" r="15" fill="#fbf7ee" stroke="${c.color}" stroke-width="3.5" filter="url(#shadow)"/>`;
+      s += `<text x="${f(x)}" y="${f(y + 5.5)}" text-anchor="middle" font-size="15">${c.icon}</text>`;
+      s += `<title>${esc(c.name)} wedge space</title>`;
     }
   });
 
