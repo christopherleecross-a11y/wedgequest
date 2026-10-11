@@ -252,6 +252,35 @@
     max-width: calc(100vw - 32px); text-align: center;
   }
   #toast.show { transform: translate(-50%, 0); opacity: 1; }
+  /* ---------- Online play ---------- */
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; background: rgba(0,0,0,.28); border-radius: 14px; margin-bottom: 6px; }
+  .tabs button { font: inherit; font-family: var(--display); font-weight: 600; font-size: .98rem; color: var(--muted);
+                 background: transparent; border: none; border-radius: 10px; padding: 10px 6px; cursor: pointer; }
+  .tabs button.on { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 2px var(--gold); }
+  .btn.wide { width: 100%; margin-top: 14px; }
+  .or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: 800; font-size: .85rem; margin: 18px 0 10px; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .join-row { display: flex; gap: 8px; }
+  #setup .join-row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .25em;
+                           font-family: var(--display); font-size: 1.15rem; text-align: center; }
+  .room-code { text-align: center; padding: 14px; border-radius: 16px; background: rgba(0,0,0,.28); border: 2px dashed var(--gold); margin-top: 8px; }
+  .room-code small { display: block; font-size: .75rem; letter-spacing: .12em; font-weight: 800; color: var(--muted); }
+  .room-code b { font-family: var(--display); font-size: 2.6rem; letter-spacing: .2em; color: var(--gold); }
+  #lobbyList { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 6px; }
+  #lobbyList li { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; background: var(--panel-2); font-weight: 800; }
+  #lobbyList .pname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #lobbyList .x { background: none; border: none; color: var(--muted); font-size: 1rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  #lobbyList .x:hover { color: var(--ink); background: var(--panel-2); }
+  .you, .tag { display: inline-block; font-family: var(--body); font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+               padding: 2px 7px; border-radius: 999px; vertical-align: middle; margin-left: 4px; }
+  .you { background: var(--gold); color: #3b2700; }
+  .tag { background: rgba(255,255,255,.12); color: var(--muted); }
+  .cpu-row { display: flex; gap: 8px; margin-top: 12px; }
+  #setup .cpu-row select { width: auto; flex: 1; }
+  #setup .cpu-row .btn { flex: none; font-size: .95rem; }
+  .hint-inline { color: var(--ink); }
+  #board .target-view { pointer-events: none; }
+
   #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 </style>
 </head>
@@ -273,7 +302,63 @@
 
 <!-- ================= SETUP ================= -->
 <section id="setup">
-  <div class="panel goal">
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button data-tab="local" class="on" role="tab">📱 One device</button>
+      <button data-tab="online" role="tab">🌐 Each on own device</button>
+    </div>
+
+    <div id="localSetup">
+      <label for="playerCount">Number of players</label>
+      <select id="playerCount">
+        <option value="1">1 player</option>
+        <option value="2" selected>2 players</option>
+        <option value="3">3 players</option>
+        <option value="4">4 players</option>
+        <option value="5">5 players</option>
+        <option value="6">6 players</option>
+      </select>
+      <label>Players &amp; teams</label>
+      <div id="nameInputs"></div>
+      <p class="hint">Set any player to 🤖 to play against the computer. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
+      <button class="btn" id="startBtn">Start Game</button>
+    </div>
+
+    <div id="onlineSetup" hidden>
+      <div id="onlineStart">
+        <label for="myName">Your name</label>
+        <input id="myName" type="text" maxlength="20" placeholder="Your name">
+        <button class="btn wide" id="hostBtn">Host a new game</button>
+        <div class="or">or join a game</div>
+        <div class="join-row">
+          <input id="joinCode" type="text" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code">
+          <button class="btn ghost" id="joinBtn">Join</button>
+        </div>
+        <p class="hint" id="netMsg"></p>
+        <p class="hint">Everyone opens this page on their own device. The host's page runs the game, so it has to stay open until the game is over.</p>
+      </div>
+
+      <div id="lobby" hidden>
+        <div class="room-code"><small>ROOM CODE</small><b id="roomCode"></b></div>
+        <p class="hint" id="lobbyHint"></p>
+        <ul id="lobbyList"></ul>
+        <div id="hostControls">
+          <div class="cpu-row">
+            <select id="cpuLevel" aria-label="Computer difficulty">
+              <option value="easy">🤖 Easy</option>
+              <option value="medium" selected>🤖 Medium</option>
+              <option value="hard">🤖 Hard</option>
+            </select>
+            <button class="btn ghost" id="addCpu">+ Add computer</button>
+          </div>
+          <button class="btn wide" id="startOnline">Start Game</button>
+        </div>
+        <button class="btn ghost wide" id="leaveLobby">Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel goal" style="margin:16px 0 0">
     <div class="goal-title">🎯 Goal of the game</div>
     <p class="goal-lead">Be the first to <b>collect all six colored wedges</b> — one from each category — and then <b>answer a final question in the Hub</b> to win.</p>
     <div class="goal-wedges" id="goalWedges"></div>
@@ -284,22 +369,6 @@
       <li><span>⭐</span><div><b>Land in the Hub early?</b> You pick any category for your question.</div></li>
       <li><span>🏆</span><div><b>Got all six?</b> Land in the Hub by <b>exact count</b>. Your opponents choose the category of your final question — answer it to win!</div></li>
     </ol>
-  </div>
-
-  <div class="panel">
-    <label for="playerCount">Number of players</label>
-    <select id="playerCount">
-      <option value="1">1 player</option>
-      <option value="2" selected>2 players</option>
-      <option value="3">3 players</option>
-      <option value="4">4 players</option>
-      <option value="5">5 players</option>
-      <option value="6">6 players</option>
-    </select>
-    <label>Players &amp; teams</label>
-    <div id="nameInputs"></div>
-    <p class="hint">Set any player to 🤖 to play against the computer. Easy gets about 45% of questions right, Medium 65%, Hard 85%.</p>
-    <button class="btn" id="startBtn">Start Game</button>
   </div>
 </section>
 
@@ -313,7 +382,7 @@
     <div class="turn">
       <span id="turnToken"></span>
       <div>
-        <div class="turn-label">Now playing</div>
+        <div class="turn-label" id="turnLabel">Now playing</div>
         <div id="turnName"></div>
       </div>
     </div>
@@ -339,6 +408,7 @@
         <li>Land in the Hub before you have all six wedges and you choose the category.</li>
         <li>With all six wedges, land in the Hub by exact count. Opponents pick the category of your final question. Miss it and you must leave the Hub and come back.</li>
         <li>🤖 Computer players take their turns automatically.</li>
+        <li>🌐 Playing on separate devices? You can only roll, move and answer on your own turn — everyone watches the same board live.</li>
         <li>Keyboard: <b>R</b> to roll, <b>1–4</b> or <b>A–D</b> to answer, <b>Enter</b> to continue.</li>
       </ul>
     </details>
@@ -875,7 +945,7 @@ function buildStaticBoard() {
   return s;
 }
 
-function targetSVG(id) {
+function targetSVG(id, clickable = true) {
   const n = NODES[id];
   const attrs = `class="glow" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="3"`;
   let shape;
@@ -888,13 +958,13 @@ function targetSVG(id) {
     const a = ringAngle(n.i);
     shape = `<path d="${arcSeg(R_IN - 9, R_OUT + 8, a - RING_HALF - 0.8, a + RING_HALF + 0.8)}" ${attrs}/>`;
   }
-  return `<g class="target" data-i="${id}">${shape}</g>`;
+  return `<g class="${clickable ? "target" : "target-view"}" data-i="${id}">${shape}</g>`;
 }
 
 function tokenSVG(p, cx, cy, r) {
   let s = `<g filter="url(#shadow)"><circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="#f6f1e7"/>`;
   for (let k = 0; k < 6; k++) {
-    if (p.wedges.has(k)) s += `<path d="${slicePath(cx, cy, r - 2.4, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}" stroke="#f6f1e7" stroke-width=".8"/>`;
+    if (p.wedges.includes(k)) s += `<path d="${slicePath(cx, cy, r - 2.4, -120 + k * 60, -60 + k * 60)}" fill="${CATEGORIES[k].color}" stroke="#f6f1e7" stroke-width=".8"/>`;
   }
   s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="url(#tokenSheen)"/>`;
   s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="none" stroke="${p.color}" stroke-width="${r > 10 ? 3.2 : 2.6}"/>`;
@@ -914,11 +984,29 @@ $("goalWedges").innerHTML = CATEGORIES.map(c =>
   `<span style="background:${c.color}">${c.icon} ${esc(c.name)}</span>`).join("");
 
 // ---------- State ----------
+// The device running the game (one shared device, or the online host) owns `state`.
+// Every change is turned into a plain "view" that is drawn locally and sent to the other devices.
 let state = null;
 let currentQ = null;
-let cpuTimer = null;
+let ui = null;              // shared UI bits: die face, category picker, winner, effects
+let FX = 0;                 // ever-increasing id for one-off effects (toasts, confetti, …)
+let cpuTimer = null, cpuKey = "";
+let VIEW = null;            // the last view drawn on this device
+let MY_ID = "local";        // which player(s) this device controls
+let seen = freshSeen();
+function freshSeen() { return { q: null, qAnswered: false, pick: null, toast: 0, confetti: 0, bump: 0, wasMine: false }; }
 
-// ---------- Setup screen ----------
+const NET = { role: "local", peer: null, conns: new Map(), hostConn: null, code: "", lobby: [] };
+const PEER_PREFIX = "wedgequest-";
+const PEERJS_URLS = [
+  "https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js",
+  "https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"
+];
+
+const displayName = p => (p.cpu ? "🤖 " : "") + esc(p.name);
+function curPlayer() { return state.players[state.cur]; }
+
+// ---------- Setup screen: one device ----------
 function renderNameInputs() {
   const n = +$("playerCount").value;
   const old = [...document.querySelectorAll("#nameInputs .name-row")].map(r => ({
@@ -947,67 +1035,386 @@ $("startBtn").addEventListener("click", () => {
   const cpuCount = rows.filter(r => r.cpu).length;
   let cpuN = 0;
   rows.forEach((r, i) => {
-    if (r.name) return;
-    if (r.cpu) { cpuN++; r.name = cpuCount > 1 ? `Computer ${cpuN}` : "Computer"; }
-    else r.name = `Player ${i + 1}`;
+    if (!r.name) {
+      if (r.cpu) { cpuN++; r.name = cpuCount > 1 ? `Computer ${cpuN}` : "Computer"; }
+      else r.name = `Player ${i + 1}`;
+    }
+    r.owner = r.cpu ? null : "local";
   });
+  resetNet();
   startGame(rows);
 });
 
+function setTab(t) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  $("localSetup").hidden = t !== "local";
+  $("onlineSetup").hidden = t !== "online";
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+function showSetup() {
+  for (const o of ["qOverlay", "pickOverlay", "winOverlay"]) $(o).classList.remove("show");
+  $("game").style.display = "none";
+  $("setup").style.display = "block";
+  VIEW = null;
+  seen = freshSeen();
+}
+
+// ---------- Game engine (runs on one device / the host only) ----------
 function startGame(configs) {
-  clearTimeout(cpuTimer);
+  clearTimeout(cpuTimer); cpuTimer = null; cpuKey = "";
   state = {
-    players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
+    players: configs.map((c, i) => ({ name: c.name, cpu: c.cpu || null, owner: c.owner ?? null, color: PLAYER_COLORS[i], pos: 0, wedges: new Set() })),
     cur: 0,
     phase: "roll",      // roll | rolling | move | moving | pick | picked | question | over
     dests: new Map(),
     roll: 0,
     picker: null,
     decks: CATEGORIES.map(() => []),
-    status: "Everyone starts in the Hub. Roll the die to begin!"
+    status: "",
+    hint: ""
   };
+  state.status = `Everyone starts in the Hub. ${displayName(state.players[0])} rolls first!`;
   currentQ = null;
-  $("setup").style.display = "none";
-  $("game").style.display = "grid";
-  for (const o of ["winOverlay", "qOverlay", "pickOverlay"]) $(o).classList.remove("show");
-  renderDie(6);
-  render();
+  ui = { die: 6, rolling: false, pick: null, win: null, toast: null, confetti: 0, bump: null };
+  seen = freshSeen();
+  publish();
 }
 
-$("newGameBtn").addEventListener("click", () => {
-  if (state && state.phase !== "over" && !confirm("Start a new game? Current progress will be lost.")) return;
-  clearTimeout(cpuTimer);
-  state = null;
-  for (const o of ["qOverlay", "pickOverlay"]) $(o).classList.remove("show");
-  $("game").style.display = "none";
-  $("setup").style.display = "block";
-});
-$("playAgainBtn").addEventListener("click", () => {
-  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu })));
-});
+function fxToast(html) { ui.toast = { id: ++FX, html }; }
 
-// ---------- Rendering ----------
-const displayName = p => (p.cpu ? "🤖 " : "") + esc(p.name);
-function curPlayer() { return state.players[state.cur]; }
-function isCpuTurn() { return !!(state && curPlayer().cpu); }
+function buildView() {
+  const q = currentQ;
+  return {
+    s: {
+      players: state.players.map(p => ({ name: p.name, cpu: p.cpu, owner: p.owner, color: p.color, pos: p.pos, wedges: [...p.wedges] })),
+      cur: state.cur, phase: state.phase, dests: [...state.dests.keys()],
+      picker: state.picker, status: state.status, hint: state.hint
+    },
+    die: ui.die, rolling: ui.rolling,
+    q: q ? { id: q.id, cat: q.cat, tag: q.tag, text: q.text, choices: q.choices, answered: q.answered,
+             pick: q.pick ?? null, ok: q.ok ?? null, correct: q.answered ? q.correct : null } : null,
+    pick: ui.pick, win: ui.win, toast: ui.toast, confetti: ui.confetti, bump: ui.bump,
+    online: NET.role !== "local"
+  };
+}
 
-function render() {
-  renderBoard();
-  renderPanel();
+// Draw the latest game on this device and send it to everyone else
+function publish() {
+  if (!state) return;
+  const v = buildView();
+  if (NET.role === "host") broadcast({ t: "view", v });
+  applyView(v);
   cpuStep();
+}
+
+function rollDie() {
+  if (state.phase !== "roll") return;
+  state.phase = "rolling";
+  state.hint = "";
+  ui.rolling = true;
+  publish();
+  const s = state;
+  let ticks = 0;
+  const iv = setInterval(() => {
+    if (state !== s) { clearInterval(iv); return; }
+    ui.die = 1 + Math.floor(Math.random() * 6);
+    if (++ticks >= 10) {
+      clearInterval(iv);
+      ui.rolling = false;
+      const r = ui.die = 1 + Math.floor(Math.random() * 6);
+      const p = curPlayer();
+      state.roll = r;
+      state.dests = destinations(p.pos, r);
+      state.phase = "move";
+      if (p.cpu) {
+        state.status = `${displayName(p)} rolled a <b>${r}</b> and is choosing a space…`;
+        state.hint = "";
+      } else {
+        state.status = `${displayName(p)} rolled a <b>${r}</b>.`;
+        state.hint = p.wedges.size === 6
+          ? (state.dests.has(0) ? "You can reach the <b>Hub</b>! Tap a glowing space." : "Not enough to land in the Hub exactly — tap a space to move closer.")
+          : "Tap any glowing space — any direction, but no doubling back.";
+      }
+    }
+    publish();
+  }, 70);
+}
+
+function moveTo(id) {
+  if (state.phase !== "move" || !state.dests.has(id)) return;
+  const path = state.dests.get(id), s = state, p = curPlayer();
+  state.phase = "moving";
+  state.dests = new Map();
+  state.hint = "";
+  publish();
+  let k = 0;
+  const iv = setInterval(() => {
+    if (state !== s) { clearInterval(iv); return; }
+    p.pos = path[k];
+    if (++k >= path.length) { clearInterval(iv); land(id); }
+    else publish();
+  }, 150);
+}
+
+function land(id) {
+  const n = NODES[id], p = curPlayer();
+  if (n.type === "roll") {
+    state.phase = "roll";
+    state.status = `🎲 ${displayName(p)} landed on <b>Roll Again</b>!`;
+    state.hint = "Roll again.";
+    fxToast("🎲 Roll again!");
+    publish();
+  } else if (n.type === "hub") {
+    openPicker(p.wedges.size === 6 ? "opponents" : "self");
+  } else {
+    askQuestion(n.cat, n.type === "hq" ? "hq" : "normal");
+  }
+}
+
+// ---------- Category picker (Hub) ----------
+function pickerIsCpu() {
+  if (state.picker === "self") return !!curPlayer().cpu;
+  return state.players.every((pl, i) => i === state.cur || pl.cpu);
+}
+
+function openPicker(who) {
+  const p = curPlayer();
+  state.picker = who;
+  if (who === "opponents" && state.players.length === 1) {
+    const cat = Math.floor(Math.random() * 6);
+    fxToast(`🏁 Final category: ${CATEGORIES[cat].icon} ${esc(CATEGORIES[cat].name)}`);
+    askQuestion(cat, "final");
+    return;
+  }
+  state.phase = "pick";
+  state.hint = "";
+  state.status = who === "self"
+    ? `${displayName(p)} landed in the Hub and picks a category.`
+    : `${displayName(p)} made it to the Hub with all six wedges! Opponents pick the final category.`;
+  const auto = pickerIsCpu();
+  ui.pick = {
+    id: ++FX, who, chosen: null, auto,
+    title: who === "self" ? `${p.name}, choose any category` : `Final question for ${p.name}!`,
+    sub: who === "self" ? "LANDED IN THE HUB" : "OPPONENTS CHOOSE THE CATEGORY",
+    autoNote: who === "self" ? `🤖 ${p.name} is choosing…` : "🤖 The computer opponents are choosing…",
+    playerName: p.name
+  };
+  publish();
+}
+
+function pickCategory(k) {
+  if (state.phase !== "pick" || !(k >= 0 && k < 6)) return;
+  state.phase = "picked";
+  ui.pick.chosen = k;
+  publish();
+  const s = state, mode = state.picker === "opponents" ? "final" : "normal";
+  setTimeout(() => {
+    if (state !== s) return;
+    ui.pick = null;
+    askQuestion(k, mode);
+  }, 650);
+}
+
+// ---------- Questions ----------
+function drawQuestion(cat) {
+  const deck = state.decks[cat];
+  if (!deck.length) deck.push(...shuffle(CATEGORIES[cat].questions.map((_, i) => i)));
+  return CATEGORIES[cat].questions[deck.pop()];
+}
+
+function askQuestion(cat, mode) {
+  state.phase = "question";
+  state.hint = "";
+  const p = curPlayer();
+  const [text, correct, ...wrong] = drawQuestion(cat);
+  currentQ = {
+    id: ++FX, cat, mode, text, correct, choices: shuffle([correct, ...wrong]), answered: false,
+    tag: mode === "final" ? "🏁 FINAL QUESTION — ANSWER TO WIN"
+      : mode === "hq" ? (p.wedges.has(cat) ? "★ WEDGE SPACE (ALREADY EARNED)" : "★ WEDGE QUESTION")
+      : `${p.cpu ? "🤖 " : ""}${p.name.toUpperCase()}'S QUESTION`
+  };
+  publish();
+}
+
+function answer(i) {
+  if (!currentQ || currentQ.answered || !(i >= 0 && i < currentQ.choices.length)) return;
+  currentQ.answered = true;
+  currentQ.pick = i;
+  currentQ.ok = currentQ.choices[i] === currentQ.correct;
+  publish();
+}
+
+function resolveQuestion() {
+  if (!currentQ || !currentQ.answered) return;
+  const { ok, mode, cat } = currentQ;
+  currentQ = null;
+  const p = curPlayer();
+
+  if (ok && mode === "final") {
+    state.phase = "over";
+    state.status = `🏆 ${displayName(p)} wins!`;
+    state.hint = "";
+    ui.win = `${p.name} wins!`;
+    ui.confetti = ++FX;
+    publish();
+    return;
+  }
+
+  if (ok) {
+    let msg = `✔ ${displayName(p)} got it right — roll again!`;
+    if (mode === "hq" && !p.wedges.has(cat)) {
+      p.wedges.add(cat);
+      ui.bump = { id: ++FX, p: state.cur };
+      const c = CATEGORIES[cat];
+      fxToast(`🧀 ${esc(p.name)} earned the ${c.icon} ${esc(c.name)} wedge!`);
+      msg = `🧀 ${displayName(p)} earned the <b style="color:${c.color}">${esc(c.name)}</b> wedge!`;
+      msg += p.wedges.size === 6 ? " That's all six — now land in the Hub by exact count!" : " Roll again.";
+    }
+    state.status = msg;
+  } else {
+    const prev = p.name;
+    state.cur = (state.cur + 1) % state.players.length;
+    state.status = state.players.length > 1
+      ? `${esc(prev)} missed. ${displayName(curPlayer())}, you're up!`
+      : "Missed that one. Roll again.";
+    if (mode === "final") state.status = `So close, ${esc(prev)}! You'll need to leave the Hub and come back. ` + state.status;
+  }
+  state.phase = "roll";
+  state.hint = "";
+  publish();
+}
+
+// ---------- Computer player (runs on one device / the host) ----------
+function cpuStep() {
+  if (!state || NET.role === "client" || state.phase === "over") return;
+  let key = null, fn = null, ms = 0;
+  if (state.phase === "pick") {
+    if (pickerIsCpu()) { key = "pick" + ui.pick.id; fn = () => pickCategory(Math.floor(Math.random() * 6)); ms = 1300; }
+  } else if (curPlayer().cpu) {
+    if (state.phase === "roll") { key = "roll" + state.cur; fn = rollDie; ms = 1000; }
+    else if (state.phase === "move") { key = "move" + state.cur; fn = () => moveTo(cpuChooseSpace()); ms = 1100; }
+    else if (state.phase === "question" && currentQ) {
+      if (!currentQ.answered) { key = "ans" + currentQ.id; fn = cpuAnswer; ms = 1400 + Math.random() * 1200; }
+      else { key = "res" + currentQ.id; fn = resolveQuestion; ms = 1900; }
+    }
+  }
+  if (!fn || (cpuTimer && key === cpuKey)) return;
+  clearTimeout(cpuTimer);
+  cpuKey = key;
+  const s = state;
+  cpuTimer = setTimeout(() => { cpuTimer = null; cpuKey = ""; if (state === s) fn(); }, ms);
+}
+
+// Head for the Hub once it has all six wedges; otherwise go for a missing wedge space.
+function cpuChooseSpace() {
+  const p = curPlayer(), all = p.wedges.size === 6;
+  const goals = all ? [0] : [0, 1, 2, 3, 4, 5].filter(k => !p.wedges.has(k)).map(HQ_ID);
+  let best = null, bestScore = -Infinity;
+  for (const id of state.dests.keys()) {
+    const n = NODES[id];
+    let score;
+    if (goals.includes(id)) score = 1000;
+    else {
+      score = -Math.min(...goals.map(g => DIST[id][g]));
+      if (n.type === "roll") score += 3;
+      if (n.type === "hub") score += 1;
+    }
+    score += Math.random() * 0.5;
+    if (score > bestScore) { bestScore = score; best = id; }
+  }
+  return best;
+}
+
+function cpuAnswer() {
+  const accuracy = CPU_LEVELS[curPlayer().cpu] ?? 0.65;
+  const correctIdx = currentQ.choices.indexOf(currentQ.correct);
+  let pick = correctIdx;
+  if (Math.random() >= accuracy) {
+    const wrongIdx = currentQ.choices.map((_, i) => i).filter(i => i !== correctIdx);
+    pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
+  }
+  answer(pick);
+}
+
+// ---------- Actions: a click on any device becomes an action the engine checks ----------
+function canPickFor(from) {
+  if (state.phase !== "pick") return false;
+  const p = curPlayer();
+  if (state.picker === "self") return !p.cpu && p.owner === from;
+  return state.players.some((pl, i) => i !== state.cur && !pl.cpu && pl.owner === from);
+}
+
+function doAction(a, v, from) {
+  if (!state) return;
+  const p = curPlayer();
+  const mine = !p.cpu && p.owner === from;
+  if (a === "pick") { if (canPickFor(from)) pickCategory(+v); return; }
+  if (!mine) return;
+  if (a === "roll") rollDie();
+  else if (a === "move") moveTo(+v);
+  else if (a === "answer") answer(+v);
+  else if (a === "continue") resolveQuestion();
+}
+
+function act(a, v) {
+  if (NET.role === "client") {
+    if (NET.hostConn && NET.hostConn.open) NET.hostConn.send({ t: "act", a, v });
+  } else {
+    doAction(a, v, MY_ID);
+  }
+}
+
+// ---------- Drawing a view (every device) ----------
+function myTurn(v) {
+  const p = v.s.players[v.s.cur];
+  return !!p && !p.cpu && p.owner === MY_ID && v.s.phase !== "over";
+}
+function canPick(v) {
+  const s = v.s;
+  if (s.phase !== "pick" || !v.pick || v.pick.auto) return false;
+  if (s.picker === "self") return myTurn(v);
+  return s.players.some((pl, i) => i !== s.cur && !pl.cpu && pl.owner === MY_ID);
+}
+
+function applyView(v) {
+  VIEW = v;
+  $("setup").style.display = "none";
+  $("game").style.display = "grid";
+  renderBoard(v);
+  renderPanel(v);
+  renderDie(v.die);
+  $("die").classList.toggle("rolling", v.rolling);
+  applyQuestion(v);
+  applyPicker(v);
+  applyWin(v);
+  if (v.toast && v.toast.id > seen.toast) { seen.toast = v.toast.id; showToast(v.toast.html); }
+  if (v.confetti > seen.confetti) { seen.confetti = v.confetti; confetti(); }
+  if (v.bump && v.bump.id > seen.bump) {
+    seen.bump = v.bump.id;
+    const li = document.querySelector(`#players li[data-p="${v.bump.p}"]`);
+    if (li) li.classList.add("bump");
+  }
+  // In online games, give a nudge when it becomes your turn
+  const mine = v.online && myTurn(v);
+  if (mine && !seen.wasMine && v.s.phase === "roll") showToast("🎲 It's your turn!");
+  seen.wasMine = mine;
 }
 
 function renderDie(v) {
   $("die").innerHTML = Array.from({ length: 9 }, (_, i) => `<span class="${PIPS[v].includes(i) ? "on" : ""}"></span>`).join("");
 }
 
-function renderBoard() {
-  let s = BOARD_STATIC;
-  if (state.phase === "move") for (const id of state.dests.keys()) s += targetSVG(id);
-
+function renderBoard(v) {
+  const s = v.s;
+  let out = BOARD_STATIC;
+  if (s.phase === "move") {
+    const clickable = myTurn(v);
+    for (const id of s.dests) out += targetSVG(id, clickable);
+  }
   // Tokens, grouped by space so they cluster instead of stacking
   const groups = {};
-  state.players.forEach((p, i) => (groups[p.pos] ||= []).push(i));
+  s.players.forEach((p, i) => (groups[p.pos] ||= []).push(i));
   let tokens = "", currentTok = "";
   for (const [key, ids] of Object.entries(groups)) {
     const [bx, by] = nodeXY(+key);
@@ -1018,33 +1425,37 @@ function renderBoard() {
       const ang = rad(-90 + j * 360 / n);
       const x = bx + spread * Math.cos(ang), y = by + spread * Math.sin(ang);
       let t = "";
-      if (pi === state.cur && state.phase !== "over") {
+      if (pi === s.cur && s.phase !== "over") {
         t += `<circle class="halo" cx="${f(x)}" cy="${f(y)}" r="${r + 5.5}" fill="none" stroke="#f5c451" stroke-width="2.4" stroke-dasharray="4 3"/>`;
       }
-      t += tokenSVG(state.players[pi], x, y, r);
-      if (pi === state.cur) currentTok = t; else tokens += t;
+      t += tokenSVG(s.players[pi], x, y, r);
+      if (pi === s.cur) currentTok = t; else tokens += t;
     });
   }
-  $("board").innerHTML = s + `<g style="pointer-events:none">${tokens}${currentTok}</g>`;
+  $("board").innerHTML = out + `<g style="pointer-events:none">${tokens}${currentTok}</g>`;
 }
 
-function renderPanel() {
-  const p = curPlayer();
+function renderPanel(v) {
+  const s = v.s, p = s.players[s.cur], mine = myTurn(v);
+  const youTag = pl => v.online && pl.owner === MY_ID ? ' <span class="you">you</span>' : "";
   $("turnToken").innerHTML = miniToken(p, 44);
-  $("turnName").innerHTML = displayName(p);
-  $("status").innerHTML = state.status;
+  $("turnLabel").textContent = v.online && mine ? "Your turn!" : "Now playing";
+  $("turnName").innerHTML = displayName(p) + youTag(p);
+  $("status").innerHTML = s.status + (mine && s.hint ? ` <span class="hint-inline">${s.hint}</span>` : "");
 
   const rb = $("rollBtn");
-  rb.textContent = p.cpu && state.phase !== "over" ? "🤖 Computer is playing…"
-    : p.wedges.size === 6 ? "Roll — reach the Hub! 🏁" : "Roll the die";
-  rb.disabled = state.phase !== "roll" || !!p.cpu;
+  rb.textContent = s.phase === "over" ? "Game over"
+    : p.cpu ? "🤖 Computer is playing…"
+    : !mine ? `Waiting for ${p.name}…`
+    : p.wedges.length === 6 ? "Roll — reach the Hub! 🏁" : "Roll the die";
+  rb.disabled = s.phase !== "roll" || !mine;
 
-  $("players").innerHTML = state.players.map((pl, i) => `
-    <li class="${i === state.cur ? "current" : ""}" data-p="${i}">
+  $("players").innerHTML = s.players.map((pl, i) => `
+    <li class="${i === s.cur ? "current" : ""}" data-p="${i}">
       ${miniToken(pl)}
-      <span class="pname">${displayName(pl)}</span>
-      <span class="wedges" aria-label="${pl.wedges.size} of 6 wedges">${CATEGORIES.map((c, k) => {
-        const got = pl.wedges.has(k);
+      <span class="pname">${displayName(pl)}${youTag(pl)}</span>
+      <span class="wedges" aria-label="${pl.wedges.length} of 6 wedges">${CATEGORIES.map((c, k) => {
+        const got = pl.wedges.includes(k);
         return `<i class="${got ? "got" : ""}" tabindex="0"
                    data-tip="${c.icon} ${esc(c.name)} — ${got ? "earned ✓" : "not yet"}"
                    aria-label="${esc(c.name)} wedge ${got ? "earned" : "not earned"}"
@@ -1054,6 +1465,78 @@ function renderPanel() {
 
   $("legend").innerHTML = CATEGORIES.map(c =>
     `<span><i style="background:${c.color}">${c.icon}</i>${esc(c.name)}</span>`).join("");
+
+  $("newGameBtn").textContent = NET.role === "client" ? "Leave Game" : NET.role === "host" ? "Back to Lobby" : "New Game";
+}
+
+function applyQuestion(v) {
+  const q = v.q, ov = $("qOverlay");
+  if (!q) { ov.classList.remove("show"); seen.q = null; return; }
+  const s = v.s, p = s.players[s.cur], mine = myTurn(v);
+  if (seen.q !== q.id) {
+    seen.q = q.id;
+    seen.qAnswered = false;
+    const c = CATEGORIES[q.cat];
+    $("qHead").style.background = `linear-gradient(135deg, ${shade(c.color, .08)}, ${shade(c.color, -.4)})`;
+    $("qIcon").textContent = c.icon;
+    $("qCat").textContent = c.name;
+    $("qTag").textContent = q.tag;
+    $("qText").textContent = q.text;
+    $("qChoices").innerHTML = q.choices.map((ch, i) =>
+      `<button data-c="${i}" ${mine ? "" : "disabled"}><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
+    $("qFeedback").innerHTML = p.cpu ? `<span style="color:var(--muted)">🤖 ${esc(p.name)} is thinking…</span>`
+      : !mine ? `<span style="color:var(--muted)">Waiting for ${esc(p.name)} to answer…</span>` : "";
+    $("qContinue").style.display = "none";
+    const card = $("qCard");
+    card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
+    ov.classList.add("show");
+  }
+  if (q.answered && !seen.qAnswered) {
+    seen.qAnswered = true;
+    [...$("qChoices").children].forEach((b, j) => {
+      b.disabled = true;
+      if (q.choices[j] === q.correct) b.classList.add("correct");
+      else if (j === q.pick) b.classList.add("wrong");
+    });
+    $("qFeedback").innerHTML = q.ok
+      ? `<span style="color:var(--good)">✔ ${mine ? "Correct!" : esc(p.name) + " got it right!"}</span>`
+      : `<span style="color:var(--bad)">✘ ${mine ? "" : esc(p.name) + " missed. "}The answer was ${esc(q.correct)}.</span>`;
+    if (mine) {
+      $("qContinue").style.display = "block";
+      $("qContinue").focus();
+    }
+  }
+}
+
+function applyPicker(v) {
+  const pk = v.pick, ov = $("pickOverlay");
+  if (!pk) { ov.classList.remove("show"); seen.pick = null; return; }
+  const can = canPick(v);
+  if (seen.pick !== pk.id) {
+    seen.pick = pk.id;
+    $("pickTitle").textContent = pk.title;
+    $("pickSub").textContent = pk.sub;
+    $("pickNote").textContent = pk.auto ? pk.autoNote
+      : can ? (pk.who === "self" ? "No wedge in the Hub — just a question in the category you pick." : "Pick the category you think will be hardest for them!")
+      : `Waiting for ${pk.who === "self" ? pk.playerName : "the other players"} to choose…`;
+    $("pickGrid").innerHTML = CATEGORIES.map((c, k) =>
+      `<button data-k="${k}" ${can ? "" : "disabled"} style="background:linear-gradient(135deg, ${shade(c.color, .05)}, ${shade(c.color, -.35)})"><span>${c.icon}</span>${esc(c.name)}</button>`).join("");
+    ov.classList.add("show");
+  }
+  if (pk.chosen !== null) {
+    const btns = [...$("pickGrid").children];
+    btns.forEach(b => b.disabled = true);
+    btns[pk.chosen].classList.add("chosen");
+  }
+}
+
+function applyWin(v) {
+  if (!v.win) { $("winOverlay").classList.remove("show"); return; }
+  $("winText").textContent = v.win;
+  const btn = $("playAgainBtn");
+  btn.disabled = NET.role === "client";
+  btn.textContent = NET.role === "client" ? "Waiting for the host…" : "Play Again";
+  $("winOverlay").classList.add("show");
 }
 
 let toastTimer = null;
@@ -1091,300 +1574,309 @@ function confetti() {
   })(start);
 }
 
-// ---------- Turn flow ----------
-function rollDie() {
-  if (state.phase !== "roll") return;
-  state.phase = "rolling";
-  renderPanel();
-  $("die").classList.add("rolling");
-  const s = state;
-  let ticks = 0;
-  const iv = setInterval(() => {
-    if (state !== s) { clearInterval(iv); $("die").classList.remove("rolling"); return; }
-    renderDie(1 + Math.floor(Math.random() * 6));
-    if (++ticks >= 10) {
-      clearInterval(iv);
-      $("die").classList.remove("rolling");
-      const r = 1 + Math.floor(Math.random() * 6);
-      renderDie(r);
-      const p = curPlayer();
-      state.roll = r;
-      state.dests = destinations(p.pos, r);
-      state.phase = "move";
-      const hubReachable = state.dests.has(0);
-      state.status = p.cpu
-        ? `${displayName(p)} rolled a <b>${r}</b> and is choosing a space…`
-        : p.wedges.size === 6
-          ? `You rolled a <b>${r}</b>. ${hubReachable ? "You can reach the <b>Hub</b>!" : "Not enough to land in the Hub exactly — move closer."} Tap a glowing space.`
-          : `You rolled a <b>${r}</b>. Tap any glowing space — any direction, but no doubling back.`;
-      render();
-    }
-  }, 70);
-}
-
-function moveTo(id) {
-  if (state.phase !== "move" || !state.dests.has(id)) return;
-  const path = state.dests.get(id), s = state, p = curPlayer();
-  state.phase = "moving";
-  state.dests = new Map();
-  renderPanel();
-  let k = 0;
-  const iv = setInterval(() => {
-    if (state !== s) { clearInterval(iv); return; }
-    p.pos = path[k];
-    renderBoard();
-    if (++k >= path.length) { clearInterval(iv); land(id); }
-  }, 150);
-}
-
-function land(id) {
-  const n = NODES[id], p = curPlayer();
-  if (n.type === "roll") {
-    state.phase = "roll";
-    state.status = `🎲 Roll again! ${displayName(p)} goes again.`;
-    showToast("🎲 Roll again!");
-    render();
-  } else if (n.type === "hub") {
-    render();
-    openPicker(p.wedges.size === 6 ? "opponents" : "self");
-  } else {
-    render();
-    askQuestion(n.cat, n.type === "hq" ? "hq" : "normal");
-  }
-}
-
-// ---------- Category picker (Hub) ----------
-function pickerIsCpu() {
-  if (state.picker === "self") return !!curPlayer().cpu;
-  return state.players.every((pl, i) => i === state.cur || pl.cpu);
-}
-
-function openPicker(who) {
-  const p = curPlayer();
-  state.picker = who;
-  if (who === "opponents" && state.players.length === 1) {
-    const cat = Math.floor(Math.random() * 6);
-    showToast(`🏁 Final category: ${CATEGORIES[cat].icon} ${esc(CATEGORIES[cat].name)}`);
-    askQuestion(cat, "final");
-    return;
-  }
-  state.phase = "pick";
-  state.status = who === "self"
-    ? `${displayName(p)} landed in the Hub and picks a category.`
-    : `${displayName(p)} made it to the Hub with all six wedges! Opponents pick the final category.`;
-  renderPanel();
-  const auto = pickerIsCpu();
-  $("pickTitle").textContent = who === "self" ? `${p.name}, choose any category` : `Final question for ${p.name}!`;
-  $("pickSub").textContent = who === "self" ? "YOU LANDED IN THE HUB" : "OPPONENTS CHOOSE THE CATEGORY";
-  $("pickNote").textContent = auto
-    ? (who === "self" ? `🤖 ${p.name} is choosing…` : "🤖 The computer opponents are choosing…")
-    : (who === "self" ? "No wedge in the Hub — just a question in the category you pick." : "Pick the category you think will be hardest for them!");
-  $("pickGrid").innerHTML = CATEGORIES.map((c, k) =>
-    `<button data-k="${k}" ${auto ? "disabled" : ""} style="background:linear-gradient(135deg, ${shade(c.color, .05)}, ${shade(c.color, -.35)})"><span>${c.icon}</span>${esc(c.name)}</button>`).join("");
-  $("pickOverlay").classList.add("show");
-  cpuStep();
-}
-
-function pickCategory(k) {
-  if (state.phase !== "pick") return;
-  state.phase = "picked";
-  const btns = [...$("pickGrid").children];
-  btns.forEach(b => b.disabled = true);
-  btns[k].classList.add("chosen");
-  const s = state, mode = state.picker === "opponents" ? "final" : "normal";
-  setTimeout(() => {
-    if (state !== s) return;
-    $("pickOverlay").classList.remove("show");
-    askQuestion(k, mode);
-  }, 650);
-}
-
-// ---------- Questions ----------
-function drawQuestion(cat) {
-  const deck = state.decks[cat];
-  if (!deck.length) deck.push(...shuffle(CATEGORIES[cat].questions.map((_, i) => i)));
-  return CATEGORIES[cat].questions[deck.pop()];
-}
-
-function askQuestion(cat, mode) {
-  state.phase = "question";
-  renderPanel();
-  const [q, correct, ...wrong] = drawQuestion(cat);
-  const choices = shuffle([correct, ...wrong]);
-  currentQ = { cat, mode, correct, choices, answered: false };
-
-  const c = CATEGORIES[cat], p = curPlayer();
-  $("qHead").style.background = `linear-gradient(135deg, ${shade(c.color, .08)}, ${shade(c.color, -.4)})`;
-  $("qIcon").textContent = c.icon;
-  $("qCat").textContent = c.name;
-  $("qTag").textContent = mode === "final" ? "🏁 FINAL QUESTION — ANSWER TO WIN"
-    : mode === "hq" ? (p.wedges.has(cat) ? "★ WEDGE SPACE (ALREADY EARNED)" : "★ WEDGE QUESTION")
-    : `${p.cpu ? "🤖 " : ""}${p.name.toUpperCase()}'S QUESTION`;
-  $("qText").textContent = q;
-  $("qFeedback").innerHTML = p.cpu ? `<span style="color:var(--muted)">🤖 ${esc(p.name)} is thinking…</span>` : "";
-  $("qContinue").style.display = "none";
-  renderChoices();
-  const card = $("qCard");
-  card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
-  $("qOverlay").classList.add("show");
-  cpuStep();
-}
-
-function renderChoices() {
-  $("qChoices").innerHTML = currentQ.choices.map((ch, i) =>
-    `<button data-c="${i}"><span class="key">${"ABCD"[i]}</span><span>${esc(ch)}</span></button>`).join("");
-}
-
-function answer(i) {
-  if (!currentQ || currentQ.answered) return;
-  currentQ.answered = true;
-  const ok = currentQ.choices[i] === currentQ.correct;
-  currentQ.ok = ok;
-  [...$("qChoices").children].forEach((b, j) => {
-    b.disabled = true;
-    if (currentQ.choices[j] === currentQ.correct) b.classList.add("correct");
-    else if (j === i) b.classList.add("wrong");
+// ---------- Online play (PeerJS: devices connect directly, no server of our own) ----------
+function loadPeerJS() {
+  if (window.Peer) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    const next = () => {
+      if (i >= PEERJS_URLS.length) return reject(new Error("PeerJS failed to load"));
+      const sc = document.createElement("script");
+      sc.src = PEERJS_URLS[i++];
+      sc.onload = () => (window.Peer ? resolve() : next());
+      sc.onerror = next;
+      document.head.appendChild(sc);
+    };
+    next();
   });
-  const p = curPlayer();
-  $("qFeedback").innerHTML = ok
-    ? `<span style="color:var(--good)">✔ ${p.cpu ? esc(p.name) + " got it right!" : "Correct!"}</span>`
-    : `<span style="color:var(--bad)">✘ ${p.cpu ? esc(p.name) + " missed. " : ""}The answer was ${esc(currentQ.correct)}.</span>`;
-  if (p.cpu) {
-    cpuStep();
-  } else {
-    $("qContinue").style.display = "block";
-    $("qContinue").focus();
+}
+function randomCode() {
+  const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  return Array.from({ length: 5 }, () => A[Math.floor(Math.random() * A.length)]).join("");
+}
+function netMsg(text, bad) {
+  $("netMsg").textContent = text;
+  $("netMsg").style.color = bad ? "var(--bad)" : "";
+}
+function setBusy(b) { $("hostBtn").disabled = b; $("joinBtn").disabled = b; }
+function myOnlineName() { return $("myName").value.trim().slice(0, 20) || "Player"; }
+function friendlyNetError(err, code) {
+  const type = err && err.type;
+  if (type === "peer-unavailable") return `No game found with code ${code}. Check the code — and the host's page must still be open.`;
+  if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed")
+    return "Couldn't reach the connection service. Check your internet — some school networks block this.";
+  if (type === "browser-incompatible") return "This browser doesn't support online play. Try Chrome, Edge, Firefox or Safari.";
+  return "Connection problem" + (type ? ` (${type})` : "") + ". Please try again.";
+}
+function resetNet() {
+  try { if (NET.peer) NET.peer.destroy(); } catch (e) {}
+  NET.role = "local"; NET.peer = null; NET.conns = new Map(); NET.hostConn = null; NET.code = ""; NET.lobby = [];
+  MY_ID = "local";
+}
+function broadcast(msg) {
+  for (const c of NET.conns.values()) if (c.open) { try { c.send(msg); } catch (e) {} }
+}
+function showOnlineStart() {
+  $("lobby").hidden = true;
+  $("onlineStart").hidden = false;
+}
+
+// ----- Hosting -----
+async function hostGame() {
+  const name = myOnlineName();
+  setBusy(true);
+  netMsg("Creating a room…");
+  try { await loadPeerJS(); }
+  catch (e) { setBusy(false); return netMsg("Couldn't load the online-play library. Check your internet connection.", true); }
+  const code = randomCode();
+  const peer = new Peer(PEER_PREFIX + code);
+  NET.peer = peer;
+  peer.on("open", id => {
+    NET.role = "host"; NET.code = code; MY_ID = id;
+    NET.lobby = [{ name, cpu: null, owner: id }];
+    setBusy(false); netMsg("");
+    $("onlineStart").hidden = true;
+    $("lobby").hidden = false;
+    broadcastLobby();
+  });
+  peer.on("connection", conn => {
+    conn.on("data", msg => onHostData(conn, msg));
+    conn.on("close", () => onClientLeft(conn.peer));
+    conn.on("error", () => onClientLeft(conn.peer));
+  });
+  peer.on("disconnected", () => { if (NET.peer === peer && !peer.destroyed) { try { peer.reconnect(); } catch (e) {} } });
+  peer.on("error", err => {
+    if (NET.peer !== peer) return;
+    if (err.type === "unavailable-id" && NET.role !== "host") { peer.destroy(); NET.peer = null; hostGame(); return; }
+    if (NET.role === "host") return;          // problems after the room exists are handled per player
+    setBusy(false); netMsg(friendlyNetError(err), true); resetNet();
+  });
+}
+
+function onHostData(conn, msg) {
+  if (!msg || typeof msg !== "object") return;
+  if (msg.t === "hello") {
+    if (NET.conns.has(conn.peer)) return;
+    const refuse = text => { try { conn.send({ t: "error", msg: text }); } catch (e) {} setTimeout(() => conn.close(), 400); };
+    if (state) return refuse("That game has already started. Ask the host to go back to the lobby.");
+    if (NET.lobby.length >= 6) return refuse("That game is full (6 players max).");
+    NET.conns.set(conn.peer, conn);
+    NET.lobby.push({ name: String(msg.name || "Player").slice(0, 20), cpu: null, owner: conn.peer });
+    broadcastLobby();
+  } else if (msg.t === "act" && NET.conns.has(conn.peer)) {
+    doAction(msg.a, msg.v, conn.peer);
   }
 }
 
-function resolveQuestion() {
-  if (!currentQ || !currentQ.answered) return;
-  $("qOverlay").classList.remove("show");
-  const { ok, mode, cat } = currentQ;
-  currentQ = null;
-  const p = curPlayer();
-
-  if (ok && mode === "final") {
-    state.phase = "over";
-    state.status = `🏆 ${displayName(p)} wins!`;
-    render();
-    $("winText").textContent = `${p.name} wins!`;
-    $("winOverlay").classList.add("show");
-    confetti();
-    return;
-  }
-
-  let bumped = null;
-  if (ok) {
-    let msg = "Correct! Roll again.";
-    if (mode === "hq" && !p.wedges.has(cat)) {
-      p.wedges.add(cat);
-      bumped = state.cur;
-      const c = CATEGORIES[cat];
-      showToast(`🧀 ${esc(p.name)} earned the ${c.icon} ${esc(c.name)} wedge!`);
-      msg = `🧀 Earned the <b style="color:${c.color}">${esc(c.name)}</b> wedge!`;
-      msg += p.wedges.size === 6 ? " That's all six — now land in the Hub by exact count!" : " Roll again.";
+function onClientLeft(id) {
+  if (!NET.conns.has(id)) return;
+  NET.conns.delete(id);
+  const entry = NET.lobby.find(l => l.owner === id);
+  if (state) {
+    // Mid-game: the computer takes over that player's seat so the game can go on
+    const p = state.players.find(pl => pl.owner === id);
+    if (entry) { entry.owner = null; entry.cpu = "medium"; entry.left = true; }
+    if (p) {
+      p.owner = null; p.cpu = "medium";
+      fxToast(`${esc(p.name)} left — 🤖 the computer takes over.`);
+      publish();
     }
-    state.status = msg;
-  } else {
-    const prev = p.name;
-    state.cur = (state.cur + 1) % state.players.length;
-    state.status = state.players.length > 1
-      ? `${esc(prev)} missed. ${displayName(curPlayer())}, you're up!`
-      : "Missed that one. Roll again.";
-    if (mode === "final") state.status = `So close, ${esc(prev)}! You'll need to leave the Hub and come back. ` + state.status;
-  }
-  state.phase = "roll";
-  render();
-  if (bumped !== null) {
-    const li = document.querySelector(`#players li[data-p="${bumped}"]`);
-    if (li) li.classList.add("bump");
+  } else if (entry) {
+    NET.lobby.splice(NET.lobby.indexOf(entry), 1);
+    broadcastLobby();
   }
 }
 
-// ---------- Computer player ----------
-function cpuSchedule(fn, ms) {
-  clearTimeout(cpuTimer);
-  const s = state;
-  cpuTimer = setTimeout(() => { cpuTimer = null; if (state === s) fn(); }, ms);
+function broadcastLobby() {
+  const msg = { t: "lobby", code: NET.code, lobby: NET.lobby.map(l => ({ name: l.name, cpu: l.cpu, owner: l.owner })) };
+  broadcast(msg);
+  renderLobby(msg);
 }
 
-function cpuStep() {
-  if (!state || state.phase === "over") return;
-  if (state.phase === "pick") {
-    if (pickerIsCpu()) cpuSchedule(() => pickCategory(Math.floor(Math.random() * 6)), 1300);
-    return;
-  }
-  if (!isCpuTurn()) return;
-  if (state.phase === "roll") cpuSchedule(rollDie, 1000);
-  else if (state.phase === "move") cpuSchedule(() => moveTo(cpuChooseSpace()), 1100);
-  else if (state.phase === "question" && currentQ) {
-    if (!currentQ.answered) cpuSchedule(cpuAnswer, 1400 + Math.random() * 1200);
-    else cpuSchedule(resolveQuestion, 1900);
+function renderLobby(msg) {
+  const host = NET.role === "host";
+  $("roomCode").textContent = msg.code;
+  $("lobbyList").innerHTML = msg.lobby.map((l, i) => `
+    <li>
+      <span class="swatch" style="border-color:${PLAYER_COLORS[i]}"></span>
+      <span class="pname">${l.cpu ? "🤖 " : ""}${esc(l.name)}${l.owner === MY_ID ? ' <span class="you">you</span>' : ""}${i === 0 ? ' <span class="tag">host</span>' : ""}${l.cpu ? ` <span class="tag">${l.cpu}</span>` : ""}</span>
+      ${host && l.cpu ? `<button class="x" data-rm="${i}" aria-label="Remove ${esc(l.name)}">✕</button>` : ""}
+    </li>`).join("");
+  $("hostControls").hidden = !host;
+  $("lobbyHint").innerHTML = host
+    ? `Have everyone open this page, tap <b>🌐 Each on own device</b>, and join with code <b>${esc(msg.code)}</b>. Start when everyone is in (2–6 players).`
+    : "You're in! Waiting for the host to start the game…";
+  $("startOnline").disabled = msg.lobby.length < 2;
+  $("addCpu").disabled = msg.lobby.length >= 6;
+}
+
+$("hostBtn").addEventListener("click", hostGame);
+$("addCpu").addEventListener("click", () => {
+  if (NET.role !== "host" || NET.lobby.length >= 6) return;
+  const taken = new Set(NET.lobby.map(l => l.name));
+  let name = "Computer", n = 2;
+  while (taken.has(name)) name = `Computer ${n++}`;
+  NET.lobby.push({ name, cpu: $("cpuLevel").value, owner: null });
+  broadcastLobby();
+});
+$("lobbyList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-rm]");
+  if (!b || NET.role !== "host") return;
+  const l = NET.lobby[+b.dataset.rm];
+  if (l && l.cpu && !l.owner) { NET.lobby.splice(+b.dataset.rm, 1); broadcastLobby(); }
+});
+$("startOnline").addEventListener("click", () => {
+  if (NET.role !== "host" || NET.lobby.length < 2) return;
+  startGame(NET.lobby.map(l => ({ name: l.name, cpu: l.cpu, owner: l.owner })));
+});
+$("leaveLobby").addEventListener("click", () => {
+  if (NET.role === "host") broadcast({ t: "error", msg: "The host closed the room." });
+  setTimeout(resetNet, 200);
+  showOnlineStart();
+  netMsg("");
+});
+
+function endToLobby() {
+  clearTimeout(cpuTimer); cpuTimer = null;
+  state = null; currentQ = null;
+  NET.lobby = NET.lobby.filter(l => !l.left);
+  broadcast({ t: "tolobby" });
+  showSetup();
+  setTab("online");
+  $("onlineStart").hidden = true;
+  $("lobby").hidden = false;
+  broadcastLobby();
+}
+
+// ----- Joining -----
+async function joinGame() {
+  const name = myOnlineName();
+  const code = $("joinCode").value.trim().toUpperCase();
+  if (code.length < 5) return netMsg("Type the 5-character room code from the host's screen.", true);
+  setBusy(true);
+  netMsg("Connecting…");
+  try { await loadPeerJS(); }
+  catch (e) { setBusy(false); return netMsg("Couldn't load the online-play library. Check your internet connection.", true); }
+  resetNet();
+  const peer = new Peer();
+  NET.peer = peer;
+  let joined = false;
+  peer.on("open", id => {
+    MY_ID = id;
+    const conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+    NET.hostConn = conn;
+    const timer = setTimeout(() => {
+      if (joined || NET.peer !== peer) return;
+      setBusy(false); netMsg("Couldn't connect to that game. Check the code and try again.", true); resetNet();
+    }, 12000);
+    conn.on("open", () => {
+      joined = true; clearTimeout(timer);
+      NET.role = "client"; NET.code = code;
+      conn.send({ t: "hello", name });
+      setBusy(false); netMsg("");
+    });
+    conn.on("data", onClientData);
+    conn.on("close", () => { if (NET.hostConn === conn) hostGone("The host left the game."); });
+  });
+  peer.on("error", err => {
+    if (NET.peer !== peer || joined) return;
+    setBusy(false); netMsg(friendlyNetError(err, code), true); resetNet();
+  });
+}
+
+function onClientData(msg) {
+  if (!msg || typeof msg !== "object") return;
+  if (msg.t === "lobby") {
+    if ($("game").style.display === "grid") return;   // already playing
+    setTab("online");
+    $("onlineStart").hidden = true;
+    $("lobby").hidden = false;
+    renderLobby(msg);
+  } else if (msg.t === "view") {
+    applyView(msg.v);
+  } else if (msg.t === "tolobby") {
+    showSetup();
+    setTab("online");
+    $("onlineStart").hidden = true;
+    $("lobby").hidden = false;
+  } else if (msg.t === "error") {
+    hostGone(msg.msg);
   }
 }
 
-// Head for the Hub once it has all six wedges; otherwise go for a missing wedge space.
-function cpuChooseSpace() {
-  const p = curPlayer(), all = p.wedges.size === 6;
-  const goals = all ? [0] : [0, 1, 2, 3, 4, 5].filter(k => !p.wedges.has(k)).map(HQ_ID);
-  let best = null, bestScore = -Infinity;
-  for (const id of state.dests.keys()) {
-    const n = NODES[id];
-    let score;
-    if (goals.includes(id)) score = 1000;
-    else {
-      score = -Math.min(...goals.map(g => DIST[id][g]));
-      if (n.type === "roll") score += 3;
-      if (n.type === "hub") score += 1;
-    }
-    score += Math.random() * 0.5;
-    if (score > bestScore) { bestScore = score; best = id; }
-  }
-  return best;
+function hostGone(text) {
+  const wasPlaying = $("game").style.display === "grid";
+  NET.hostConn = null;
+  resetNet();
+  if (wasPlaying || $("game").style.display === "grid") showSetup();
+  setTab("online");
+  showOnlineStart();
+  setBusy(false);
+  netMsg(text, true);
 }
 
-function cpuAnswer() {
-  const p = curPlayer();
-  const accuracy = CPU_LEVELS[p.cpu] ?? 0.65;
-  const correctIdx = currentQ.choices.indexOf(currentQ.correct);
-  let pick = correctIdx;
-  if (Math.random() >= accuracy) {
-    const wrongIdx = currentQ.choices.map((_, i) => i).filter(i => i !== correctIdx);
-    pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
-  }
-  answer(pick);
-}
+$("joinBtn").addEventListener("click", joinGame);
+$("joinCode").addEventListener("keydown", e => { if (e.key === "Enter") joinGame(); });
 
-// ---------- Events ----------
-$("rollBtn").addEventListener("click", () => { if (!isCpuTurn()) rollDie(); });
+// ---------- Buttons & keyboard ----------
+$("rollBtn").addEventListener("click", () => { if (VIEW && myTurn(VIEW)) act("roll"); });
 $("board").addEventListener("click", e => {
-  if (isCpuTurn()) return;
-  const g = e.target.closest("g[data-i]");
-  if (g) moveTo(+g.dataset.i);
+  if (!VIEW || !myTurn(VIEW)) return;
+  const g = e.target.closest("g.target[data-i]");
+  if (g) act("move", +g.dataset.i);
 });
 $("pickGrid").addEventListener("click", e => {
-  if (!state || pickerIsCpu()) return;
+  if (!VIEW || !canPick(VIEW)) return;
   const b = e.target.closest("button[data-k]");
-  if (b) pickCategory(+b.dataset.k);
+  if (b) act("pick", +b.dataset.k);
 });
 $("qChoices").addEventListener("click", e => {
-  if (isCpuTurn()) return;
+  if (!VIEW || !myTurn(VIEW)) return;
   const b = e.target.closest("button[data-c]");
-  if (b) answer(+b.dataset.c);
+  if (b) act("answer", +b.dataset.c);
 });
-$("qContinue").addEventListener("click", resolveQuestion);
+$("qContinue").addEventListener("click", () => { $("qContinue").style.display = "none"; act("continue"); });
+
+$("newGameBtn").addEventListener("click", () => {
+  if (NET.role === "client") {
+    if (!confirm("Leave this game? The computer will take over your player.")) return;
+    resetNet(); showSetup(); setTab("online"); showOnlineStart(); netMsg("");
+  } else if (NET.role === "host") {
+    if (state && state.phase !== "over" && !confirm("End this game and take everyone back to the lobby?")) return;
+    endToLobby();
+  } else {
+    if (state && state.phase !== "over" && !confirm("Start a new game? Current progress will be lost.")) return;
+    clearTimeout(cpuTimer); cpuTimer = null;
+    state = null; currentQ = null;
+    showSetup(); setTab("local");
+  }
+});
+$("playAgainBtn").addEventListener("click", () => {
+  if (NET.role === "client" || !state) return;
+  startGame(state.players.map(p => ({ name: p.name, cpu: p.cpu, owner: p.owner })));
+});
 
 document.addEventListener("keydown", e => {
-  if (!state || e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || isCpuTurn()) return;
-  const k = e.key.toLowerCase();
-  if (state.phase === "question" && currentQ) {
-    const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
-    if (k.length === 1 && idx >= 0) answer(idx);
-    else if (e.key === "Enter" && currentQ.answered) { e.preventDefault(); resolveQuestion(); }
-  } else if (state.phase === "roll" && k === "r") {
-    rollDie();
+  if (!VIEW || e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || !myTurn(VIEW)) return;
+  const k = e.key.toLowerCase(), s = VIEW.s;
+  if (s.phase === "question" && VIEW.q) {
+    if (!VIEW.q.answered) {
+      const idx = "1234".indexOf(k) >= 0 ? "1234".indexOf(k) : "abcd".indexOf(k);
+      if (k.length === 1 && idx >= 0) act("answer", idx);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      $("qContinue").style.display = "none";
+      act("continue");
+    }
+  } else if (s.phase === "roll" && k === "r") {
+    act("roll");
   }
+});
+
+// If someone closes the host page, let the other players know right away
+window.addEventListener("pagehide", () => {
+  if (NET.role === "host") broadcast({ t: "error", msg: "The host closed the game." });
+  if (NET.role === "client" && NET.hostConn) { try { NET.hostConn.close(); } catch (e) {} }
 });
 </script>
 </body>
