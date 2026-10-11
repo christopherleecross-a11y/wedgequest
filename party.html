@@ -1,0 +1,1073 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1424">
+<title>Wedge Quest Party</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#0f1424; --panel:#1a2238; --panel2:#232d4a; --text:#f4f6fb; --muted:#9aa6c4; --accent:#ffd34d;
+  --A:#e5484d; --B:#3e8ef7; --C:#f5c400; --D:#2fbf71;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:radial-gradient(circle at 30% 20%,#1c2747 0%,var(--bg) 60%) fixed;color:var(--text);font-family:'Fredoka',system-ui,sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;color:inherit}
+.letter{flex:0 0 auto;display:grid;place-items:center;font-weight:700;color:#fff}
+.c0 .letter{background:var(--A)} .c1 .letter{background:var(--B)}
+.c2 .letter{background:var(--C);color:#2a2000} .c3 .letter{background:var(--D)}
+
+/* ================= TV ================= */
+body.tv{overflow:hidden}
+.tv #app{height:100vh;width:100vw}
+.lobby{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;padding:3vh 4vw;text-align:center}
+.brand h1{font-size:8vmin;line-height:1}
+.brand h1 span{color:var(--accent)}
+.brand p{color:var(--muted);font-size:2.6vmin;margin-top:1vmin}
+.joinbox{display:flex;gap:4vmin;align-items:center;background:var(--panel);padding:3vmin 4vmin;border-radius:3vmin}
+.qr{background:#fff;padding:1.2vmin;border-radius:1.5vmin;width:26vmin;height:26vmin;flex:0 0 auto}
+.qr img,.qr canvas{width:100%!important;height:100%!important;display:block}
+.joinbox .label{color:var(--muted);font-size:2.1vmin;text-transform:uppercase;letter-spacing:.15em;text-align:left}
+.joinbox .url{font-size:2.8vmin;margin-bottom:2vmin;text-align:left;word-break:break-all;max-width:45vw}
+.joinbox .code{font-size:12vmin;font-weight:700;letter-spacing:.12em;color:var(--accent);text-align:left;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:1.4vmin;justify-content:center;min-height:6vmin;max-width:80vw}
+.chip{display:flex;align-items:center;gap:1vmin;background:var(--panel2);padding:1vmin 1.4vmin 1vmin 2vmin;border-radius:99px;font-size:3vmin}
+.chip.off{opacity:.4}
+.chip .x{background:none;color:var(--muted);font-size:2.4vmin;padding:0 .6vmin}
+.dot{width:3vmin;height:3vmin;border-radius:50%;border:.4vmin solid #0008;display:inline-block;flex:0 0 auto}
+.settings{display:flex;gap:2vmin;align-items:center;flex-wrap:wrap;justify-content:center;font-size:2.4vmin;color:var(--muted)}
+.settings select{font:inherit;background:var(--panel2);color:var(--text);border:0;border-radius:1vmin;padding:.6vmin 1vmin}
+.btn{background:var(--accent);color:#1a1300;font-weight:700;padding:1.4vmin 3vmin;font-size:2.8vmin}
+.btn.ghost{background:var(--panel2);color:var(--text);font-weight:600}
+.btn:disabled{opacity:.4;cursor:default}
+.warn{color:#ffb4a8;font-size:2.2vmin;max-width:70vw}
+.hint{color:var(--muted);font-size:2.2vmin}
+
+.game{display:flex;height:100%;padding:2.5vmin;gap:2.5vmin}
+.boardwrap{flex:0 0 auto;height:100%;aspect-ratio:1}
+.board{width:100%;height:100%;display:block}
+.side{flex:1;display:flex;flex-direction:column;gap:2vmin;min-width:0}
+.status{background:var(--panel);border-radius:2vmin;padding:2.4vmin;display:flex;gap:2.4vmin;align-items:center;font-size:3.2vmin;min-height:14vmin;line-height:1.25}
+.die{flex:0 0 auto;width:10vmin;height:10vmin;border-radius:2vmin;background:#fff;color:#111;display:grid;place-items:center;font-size:6vmin;font-weight:700;box-shadow:0 .6vmin 0 #0006}
+.die.spin{animation:shake .15s infinite}
+@keyframes shake{0%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}100%{transform:rotate(-10deg)}}
+.plist{flex:1;display:flex;flex-direction:column;gap:1.2vmin;overflow:hidden}
+.prow{display:flex;align-items:center;gap:1.6vmin;background:var(--panel);border-radius:1.6vmin;padding:1.2vmin 1.8vmin;font-size:3vmin;border:.4vmin solid transparent}
+.prow.active{border-color:var(--accent);background:var(--panel2)}
+.prow.off{opacity:.45}
+.prow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .ct{color:var(--muted);font-size:2.4vmin}
+.tvbtns{display:flex;gap:1.2vmin;align-items:center;color:var(--muted)}
+.tvbtns .btn{font-size:2vmin;padding:1vmin 2vmin}
+.tvbtns .room{margin-left:auto;font-size:2.4vmin}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.15}}
+
+.overlay{position:fixed;inset:0;background:#070a14d0;display:grid;place-items:center;padding:4vmin;z-index:5}
+.qcard{width:min(150vmin,92vw);background:var(--panel);border-radius:3vmin;overflow:hidden;border-top:2vmin solid var(--cat);padding-bottom:3vmin}
+.qhead{padding:2vmin 3vmin 0;color:var(--cat);font-size:3vmin;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.qtext{padding:1.5vmin 3vmin 3vmin;font-size:5vmin;line-height:1.2;font-weight:600}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:1.6vmin;padding:0 3vmin}
+.choice{display:flex;align-items:center;gap:1.6vmin;padding:1.8vmin;border-radius:1.6vmin;font-size:3.4vmin;background:var(--panel2);transition:opacity .3s,transform .3s}
+.choice .letter{width:6vmin;height:6vmin;border-radius:1.2vmin;font-size:3.4vmin}
+.choice.right{background:#e9fbe9;color:#0d3b1e;transform:scale(1.03)}
+.choice.wrongpick{background:#6a2229}
+.choice.dim{opacity:.3}
+.qfoot{display:flex;align-items:center;gap:2vmin;padding:3vmin 3vmin 0}
+.timer{flex:1;height:2vmin;background:var(--panel2);border-radius:99px;overflow:hidden}
+#tbar{height:100%;background:var(--cat);transition:width .2s linear}
+#tsecs{font-size:3.4vmin;font-weight:700;min-width:6vmin;text-align:right}
+.result{padding:3vmin 3vmin 0;font-size:4.4vmin;font-weight:700;text-align:center}
+.result.correct{color:#7ef0a8}
+.result.wrong,.result.timeout{color:#ff9a9a}
+.win{text-align:center;display:flex;flex-direction:column;align-items:center;gap:3vmin}
+.win h2{font-size:10vmin;line-height:1}
+.win p{font-size:3.4vmin;color:var(--muted)}
+
+/* ================= PHONE ================= */
+body.phone{overflow:auto}
+.phone #app{min-height:100%;display:flex;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) 16px 24px;max-width:520px;margin:0 auto}
+.ph-top{display:flex;align-items:center;gap:10px;padding:4px 0 16px;font-size:20px;font-weight:600}
+.ph-top .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-top .dot{width:22px;height:22px;border-width:3px}
+.ph-main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center}
+.ph-title{font-size:34px;font-weight:700;line-height:1.1}
+.ph-title span{color:var(--accent)}
+.ph-sub{color:var(--muted);font-size:18px}
+.field{display:flex;flex-direction:column;gap:6px;text-align:left;font-size:15px;color:var(--muted)}
+.field input{font:inherit;font-size:24px;padding:14px;border-radius:14px;border:2px solid #2c3757;background:var(--panel);color:var(--text);width:100%}
+#roomIn{text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700}
+.big{width:100%;padding:22px;font-size:26px;font-weight:700;background:var(--accent);color:#1a1300;box-shadow:0 6px 0 #a8861a}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #a8861a}
+.roll{width:70%;aspect-ratio:1;margin:0 auto;border-radius:32px;font-size:44px}
+.dirbtn{width:100%;padding:20px;font-size:22px;font-weight:700;color:#fff;border-radius:18px;text-shadow:0 1px 3px #0008;box-shadow:0 5px 0 #0005}
+.dirbtn small{display:block;font-size:15px;font-weight:600;opacity:.9}
+.ans{display:flex;align-items:center;gap:12px;width:100%;padding:14px;text-align:left;font-size:19px;background:var(--panel);border-radius:16px;border:3px solid transparent}
+.ans .letter{width:44px;height:44px;font-size:22px;border-radius:10px}
+.ans.picked{border-color:#fff}
+.ans:disabled{opacity:.45}
+.ans.picked:disabled{opacity:1}
+.ph-q{font-size:20px;line-height:1.3;background:var(--panel);padding:16px;border-radius:16px;text-align:left;border-top:6px solid var(--cat,#fff)}
+.ph-cat{font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cat,#fff);margin-bottom:6px}
+.ph-secs{font-size:18px;color:var(--muted)}
+.ph-res{font-size:42px;font-weight:700}
+.ph-res.correct{color:#7ef0a8} .ph-res.wrong,.ph-res.timeout{color:#ff9a9a}
+.spinner{width:48px;height:48px;border:5px solid #ffffff22;border-top-color:var(--accent);border-radius:50%;margin:0 auto;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.link{background:none;color:var(--muted);text-decoration:underline;font-size:16px}
+.err{color:#ffb4a8;font-size:18px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =====================================================================
+   QUESTIONS
+   When this file sits next to your Wedge Quest index.html (same GitHub
+   repo), it reads the question bank from index.html every time the TV
+   page opens — edit questions there and both games stay in sync.
+   The copy below is only a backup, used if index.html can't be loaded.
+   Format: ["Question", "Correct answer", "Wrong 1", "Wrong 2", "Wrong 3"]
+   ===================================================================== */
+const GAME_URL = 'index.html';
+let CATEGORIES = [
+  {
+    name: "Geography", color: "#3b82f6", icon: "🌍",
+    questions: [
+      ["What is the capital of Australia?", "Canberra", "Sydney", "Melbourne", "Perth"],
+      ["What is the longest river in South America?", "Amazon", "Paraná", "Orinoco", "Magdalena"],
+      ["Which is the largest hot desert in the world?", "Sahara", "Gobi", "Kalahari", "Mojave"],
+      ["Mount Kilimanjaro is in which country?", "Tanzania", "Kenya", "Uganda", "Ethiopia"],
+      ["What is the smallest country in the world by area?", "Vatican City", "Monaco", "San Marino", "Liechtenstein"],
+      ["Which U.S. state has the longest coastline?", "Alaska", "Florida", "California", "Hawaii"],
+      ["What is the capital of Canada?", "Ottawa", "Toronto", "Montreal", "Vancouver"],
+      ["The Strait of Gibraltar separates Spain from which country?", "Morocco", "Algeria", "Portugal", "Tunisia"],
+      ["Which is the largest ocean on Earth?", "Pacific", "Atlantic", "Indian", "Arctic"],
+      ["Lake Titicaca sits on the border of Peru and which country?", "Bolivia", "Chile", "Ecuador", "Brazil"],
+      ["The Great Barrier Reef lies off the coast of which Australian state?", "Queensland", "New South Wales", "Western Australia", "Victoria"],
+      ["What is the capital of Brazil?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"],
+      ["Which river flows through Baghdad?", "Tigris", "Euphrates", "Jordan", "Nile"],
+      ["Which continent has the most countries?", "Africa", "Asia", "Europe", "South America"],
+      ["What is the tallest mountain in the world above sea level?", "Mount Everest", "K2", "Kangchenjunga", "Denali"],
+      ["What is the capital of Japan?", "Tokyo", "Kyoto", "Osaka", "Hiroshima"],
+      ["Which country has the world's largest population?", "India", "China", "United States", "Indonesia"],
+      ["What is the largest country in the world by area?", "Russia", "Canada", "China", "United States"],
+      ["Which African country has the largest population?", "Nigeria", "Egypt", "Ethiopia", "South Africa"],
+      ["What is the capital of Egypt?", "Cairo", "Alexandria", "Luxor", "Giza"],
+      ["Which mountain range is traditionally seen as a boundary between Europe and Asia?", "Ural Mountains", "Alps", "Carpathians", "Pyrenees"],
+      ["Which U.S. state is nicknamed the Lone Star State?", "Texas", "Alaska", "Montana", "Nevada"],
+      ["What is the capital of Italy?", "Rome", "Milan", "Venice", "Florence"],
+      ["Which river runs through London?", "Thames", "Seine", "Severn", "Avon"],
+      ["Which European country is shaped like a boot?", "Italy", "Greece", "Portugal", "Croatia"],
+      ["What is the largest island in the world that is not a continent?", "Greenland", "New Guinea", "Borneo", "Madagascar"],
+      ["What is the capital of Spain?", "Madrid", "Barcelona", "Seville", "Valencia"],
+      ["In which country is the city of Marrakesh?", "Morocco", "Egypt", "Tunisia", "Algeria"],
+      ["The Panama Canal connects the Atlantic Ocean to which ocean?", "Pacific", "Indian", "Arctic", "Southern"],
+      ["Which U.S. state is made up entirely of islands?", "Hawaii", "Alaska", "Rhode Island", "Florida"],
+      ["What is the capital of Kenya?", "Nairobi", "Mombasa", "Addis Ababa", "Kampala"],
+      ["What is the deepest ocean trench on Earth?", "Mariana Trench", "Puerto Rico Trench", "Java Trench", "Tonga Trench"],
+      ["Which Italian city is built on more than 100 small islands linked by canals?", "Venice", "Naples", "Genoa", "Pisa"],
+      ["What is the largest lake in Africa?", "Lake Victoria", "Lake Tanganyika", "Lake Malawi", "Lake Chad"],
+      ["The ancient city of Petra is in which country?", "Jordan", "Egypt", "Israel", "Syria"],
+      ["Mount Fuji is in which country?", "Japan", "China", "South Korea", "Nepal"],
+      ["What is the capital of Argentina?", "Buenos Aires", "Santiago", "Lima", "Montevideo"],
+      ["Which Great Lake is the largest by surface area?", "Lake Superior", "Lake Michigan", "Lake Huron", "Lake Erie"],
+      ["Which two countries share the world's longest international border?", "Canada and the United States", "Russia and Kazakhstan", "Chile and Argentina", "China and Mongolia"],
+      ["What is the capital of Germany?", "Berlin", "Munich", "Frankfurt", "Hamburg"]
+    ]
+  },
+  {
+    name: "History", color: "#f59e0b", icon: "🏛️",
+    questions: [
+      ["In what year did the Berlin Wall fall?", "1989", "1987", "1991", "1985"],
+      ["Who was the first U.S. president to live in the White House?", "John Adams", "George Washington", "Thomas Jefferson", "James Madison"],
+      ["Which ancient wonder stood in Alexandria, Egypt?", "The Lighthouse (Pharos)", "The Hanging Gardens", "The Colossus", "The Mausoleum"],
+      ["Who was the first Roman emperor?", "Augustus", "Julius Caesar", "Nero", "Caligula"],
+      ["In what year was the Magna Carta sealed?", "1215", "1066", "1415", "1314"],
+      ["What ship carried the Pilgrims to North America in 1620?", "Mayflower", "Santa María", "Endeavour", "Speedwell"],
+      ["Who was Britain's prime minister for most of World War II?", "Winston Churchill", "Neville Chamberlain", "Clement Attlee", "Anthony Eden"],
+      ["Which civilization built Machu Picchu?", "Inca", "Aztec", "Maya", "Olmec"],
+      ["In what year did humans first land on the Moon?", "1969", "1967", "1971", "1965"],
+      ["The Rosetta Stone helped scholars decipher which writing system?", "Egyptian hieroglyphs", "Linear B", "Cuneiform", "Maya glyphs"],
+      ["Suleiman the Magnificent ruled which empire?", "Ottoman", "Mughal", "Persian", "Byzantine"],
+      ["Who wrote the first draft of the Declaration of Independence?", "Thomas Jefferson", "Benjamin Franklin", "John Adams", "James Madison"],
+      ["The Hundred Years' War was fought between England and which country?", "France", "Spain", "Scotland", "the Netherlands"],
+      ["Who was the first woman to win a Nobel Prize?", "Marie Curie", "Jane Addams", "Dorothy Hodgkin", "Rosalind Franklin"],
+      ["In what year did the Titanic sink?", "1912", "1905", "1915", "1920"],
+      ["Who was the first President of the United States?", "George Washington", "John Adams", "Thomas Jefferson", "Benjamin Franklin"],
+      ["In what year did World War II end?", "1945", "1944", "1946", "1918"],
+      ["Genghis Khan founded which empire?", "Mongol", "Ottoman", "Persian", "Roman"],
+      ["The French Revolution began in which year?", "1789", "1776", "1812", "1848"],
+      ["Who gave the famous 'I Have a Dream' speech in 1963?", "Martin Luther King Jr.", "Malcolm X", "John F. Kennedy", "Frederick Douglass"],
+      ["Whose 1492 voyage across the Atlantic reached the Americas?", "Christopher Columbus", "Ferdinand Magellan", "Vasco da Gama", "Amerigo Vespucci"],
+      ["Who was the British king during the American Revolution?", "George III", "George II", "William IV", "Edward VII"],
+      ["The Roman city of Pompeii was buried by which volcano?", "Mount Vesuvius", "Mount Etna", "Stromboli", "Mount Olympus"],
+      ["Which U.S. president issued the Emancipation Proclamation?", "Abraham Lincoln", "Ulysses S. Grant", "Andrew Johnson", "James Buchanan"],
+      ["Who was the first person to walk on the Moon?", "Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"],
+      ["Who was the first human to travel into space?", "Yuri Gagarin", "Alan Shepard", "Neil Armstrong", "John Glenn"],
+      ["In which country did the Industrial Revolution begin?", "Great Britain", "United States", "Germany", "France"],
+      ["Which English queen's navy defeated the Spanish Armada in 1588?", "Elizabeth I", "Victoria", "Mary I", "Anne"],
+      ["Joan of Arc is a national heroine of which country?", "France", "England", "Spain", "Italy"],
+      ["In what year was the Battle of Hastings?", "1066", "1215", "1415", "966"],
+      ["Who led the Soviet Union during World War II?", "Joseph Stalin", "Vladimir Lenin", "Nikita Khrushchev", "Leon Trotsky"],
+      ["Which U.S. founding document begins with 'We the People'?", "The Constitution", "The Declaration of Independence", "The Bill of Rights", "The Articles of Confederation"],
+      ["In what year did the American Civil War begin?", "1861", "1850", "1865", "1776"],
+      ["What was the capital of the Byzantine Empire?", "Constantinople", "Rome", "Athens", "Alexandria"],
+      ["Which British prime minister was nicknamed the 'Iron Lady'?", "Margaret Thatcher", "Theresa May", "Queen Victoria", "Elizabeth I"],
+      ["Whose nearly intact tomb was discovered in Egypt's Valley of the Kings in 1922?", "Tutankhamun", "Ramses II", "Cleopatra", "Khufu"],
+      ["Which country gave the Statue of Liberty to the United States?", "France", "United Kingdom", "Spain", "Italy"],
+      ["Nelson Mandela became president of which country in 1994?", "South Africa", "Zimbabwe", "Kenya", "Namibia"],
+      ["Who wrote the 95 Theses, sparking the Protestant Reformation?", "Martin Luther", "John Calvin", "Henry VIII", "Thomas More"],
+      ["The Great Wall was built mainly to protect which country?", "China", "Mongolia", "Japan", "Korea"]
+    ]
+  },
+  {
+    name: "Science", color: "#22c55e", icon: "🔬",
+    questions: [
+      ["What is the chemical symbol for gold?", "Au", "Ag", "Gd", "Go"],
+      ["Which planet has the most known moons?", "Saturn", "Jupiter", "Uranus", "Neptune"],
+      ["Which part of the cell is known as its 'powerhouse'?", "Mitochondria", "Nucleus", "Ribosome", "Golgi apparatus"],
+      ["Roughly how fast does light travel?", "300,000 km/s", "30,000 km/s", "3,000,000 km/s", "150,000 km/s"],
+      ["What is the hardest natural substance?", "Diamond", "Quartz", "Topaz", "Granite"],
+      ["How many bones are in the adult human body?", "206", "186", "212", "256"],
+      ["Which gas do plants absorb for photosynthesis?", "Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"],
+      ["What is the pH of pure water at 25°C?", "7", "0", "5", "14"],
+      ["Which blood type is the universal red-cell donor?", "O negative", "AB positive", "A negative", "B positive"],
+      ["Who developed the theory of general relativity?", "Albert Einstein", "Isaac Newton", "Niels Bohr", "Stephen Hawking"],
+      ["What is the most abundant gas in Earth's atmosphere?", "Nitrogen", "Oxygen", "Argon", "Carbon dioxide"],
+      ["Which planet is closest to the Sun?", "Mercury", "Venus", "Mars", "Earth"],
+      ["What does DNA stand for?", "Deoxyribonucleic acid", "Dinitrogen acid", "Deoxyribose nucleotide array", "Diribonucleic acid"],
+      ["What is the unit of electrical resistance?", "Ohm", "Volt", "Ampere", "Watt"],
+      ["What is the largest organ of the human body?", "Skin", "Liver", "Brain", "Lungs"],
+      ["What is the chemical formula for water?", "H₂O", "CO₂", "O₂", "H₂O₂"],
+      ["Which planet is known as the Red Planet?", "Mars", "Jupiter", "Venus", "Mercury"],
+      ["What force keeps the planets in orbit around the Sun?", "Gravity", "Magnetism", "Friction", "Static electricity"],
+      ["What is the center of an atom called?", "Nucleus", "Electron", "Shell", "Orbit"],
+      ["What is the freezing point of water in degrees Fahrenheit?", "32°F", "0°F", "212°F", "100°F"],
+      ["Which organ pumps blood through the body?", "Heart", "Lungs", "Liver", "Kidneys"],
+      ["What is the largest planet in our solar system?", "Jupiter", "Saturn", "Neptune", "Earth"],
+      ["Which particle has a negative electric charge?", "Electron", "Proton", "Neutron", "Photon"],
+      ["What is the chemical symbol for sodium?", "Na", "So", "Sd", "S"],
+      ["What type of rock forms when lava or magma cools?", "Igneous", "Sedimentary", "Metamorphic", "Limestone"],
+      ["What is the most common element in the universe?", "Hydrogen", "Helium", "Oxygen", "Carbon"],
+      ["Which vitamin does your skin make when exposed to sunlight?", "Vitamin D", "Vitamin C", "Vitamin A", "Vitamin B12"],
+      ["At sea level, water boils at what temperature in Celsius?", "100°C", "90°C", "120°C", "212°C"],
+      ["Newton's first law of motion is also called the law of what?", "Inertia", "Acceleration", "Gravity", "Energy"],
+      ["How many chromosomes do humans typically have?", "46", "23", "44", "48"],
+      ["Who proposed the theory of evolution by natural selection in On the Origin of Species?", "Charles Darwin", "Gregor Mendel", "Louis Pasteur", "Isaac Newton"],
+      ["What instrument records earthquakes?", "Seismograph", "Barometer", "Thermometer", "Anemometer"],
+      ["What is the chemical symbol for iron?", "Fe", "Ir", "In", "I"],
+      ["Our solar system is part of which galaxy?", "Milky Way", "Andromeda", "Triangulum", "Sombrero"],
+      ["What is the scientific study of weather called?", "Meteorology", "Geology", "Astronomy", "Ecology"],
+      ["Which blood cells help the body fight infection?", "White blood cells", "Red blood cells", "Platelets", "Plasma cells"],
+      ["What is the smallest unit of life?", "The cell", "The atom", "The molecule", "The organ"],
+      ["Which planet is famous for its large, bright ring system?", "Saturn", "Mars", "Venus", "Mercury"],
+      ["What is the name for animals that are active at night?", "Nocturnal", "Diurnal", "Crepuscular", "Dormant"],
+      ["Which simple machine is a ramp?", "Inclined plane", "Lever", "Pulley", "Wheel and axle"]
+    ]
+  },
+  {
+    name: "Arts & Literature", color: "#a855f7", icon: "🎨",
+    questions: [
+      ["Who painted the Mona Lisa?", "Leonardo da Vinci", "Michelangelo", "Raphael", "Botticelli"],
+      ["Who wrote the novel 1984?", "George Orwell", "Aldous Huxley", "Ray Bradbury", "H. G. Wells"],
+      ["Which Shakespeare play features the moneylender Shylock?", "The Merchant of Venice", "Othello", "Twelfth Night", "Much Ado About Nothing"],
+      ["Who painted The Starry Night?", "Vincent van Gogh", "Claude Monet", "Paul Gauguin", "Paul Cézanne"],
+      ["Who wrote Pride and Prejudice?", "Jane Austen", "Charlotte Brontë", "George Eliot", "Mary Shelley"],
+      ["Who sculpted the marble David in Florence's Galleria dell'Accademia?", "Michelangelo", "Bernini", "Rodin", "Canova"],
+      ["Which ancient poet is credited with The Odyssey?", "Homer", "Virgil", "Sophocles", "Ovid"],
+      ["Salvador Dalí is most associated with which art movement?", "Surrealism", "Cubism", "Impressionism", "Baroque"],
+      ["Who wrote Moby-Dick?", "Herman Melville", "Nathaniel Hawthorne", "Mark Twain", "Edgar Allan Poe"],
+      ["How many lines are in a sonnet?", "14", "12", "16", "10"],
+      ["Who wrote One Hundred Years of Solitude?", "Gabriel García Márquez", "Jorge Luis Borges", "Pablo Neruda", "Isabel Allende"],
+      ["Painter Frida Kahlo was from which country?", "Mexico", "Spain", "Argentina", "Cuba"],
+      ["Who composed The Four Seasons?", "Antonio Vivaldi", "J. S. Bach", "George Frideric Handel", "Wolfgang Amadeus Mozart"],
+      ["Which novel is set in the fictional town of Maycomb, Alabama?", "To Kill a Mockingbird", "Gone with the Wind", "The Color Purple", "Of Mice and Men"],
+      ["What are the three primary colors in traditional color theory?", "Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Cyan, magenta, black"],
+      ["Who wrote Romeo and Juliet?", "William Shakespeare", "Christopher Marlowe", "Ben Jonson", "Geoffrey Chaucer"],
+      ["Who wrote the Harry Potter books?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Roald Dahl"],
+      ["Who wrote The Hobbit?", "J. R. R. Tolkien", "C. S. Lewis", "Lewis Carroll", "Philip Pullman"],
+      ["Who painted the ceiling of the Sistine Chapel?", "Michelangelo", "Raphael", "Leonardo da Vinci", "Caravaggio"],
+      ["Who painted The Scream?", "Edvard Munch", "Gustav Klimt", "Vincent van Gogh", "Egon Schiele"],
+      ["Which Charles Dickens story features Ebenezer Scrooge?", "A Christmas Carol", "Oliver Twist", "Great Expectations", "Bleak House"],
+      ["Who wrote The Adventures of Tom Sawyer?", "Mark Twain", "Jack London", "Herman Melville", "Louisa May Alcott"],
+      ["Pablo Picasso helped found which art movement?", "Cubism", "Surrealism", "Impressionism", "Pop Art"],
+      ["Who wrote The Great Gatsby?", "F. Scott Fitzgerald", "Ernest Hemingway", "John Steinbeck", "William Faulkner"],
+      ["Who is the hero of Homer's Odyssey?", "Odysseus", "Achilles", "Hercules", "Perseus"],
+      ["Who wrote Frankenstein?", "Mary Shelley", "Bram Stoker", "Emily Brontë", "Edgar Allan Poe"],
+      ["Who painted Girl with a Pearl Earring?", "Johannes Vermeer", "Rembrandt", "Jan van Eyck", "Peter Paul Rubens"],
+      ["Andy Warhol is best known for which art movement?", "Pop Art", "Cubism", "Dada", "Baroque"],
+      ["Who wrote the poem 'The Raven'?", "Edgar Allan Poe", "Walt Whitman", "Emily Dickinson", "Robert Frost"],
+      ["Who composed the 'Moonlight' Sonata?", "Ludwig van Beethoven", "Frédéric Chopin", "Wolfgang Amadeus Mozart", "Franz Schubert"],
+      ["Who wrote Charlotte's Web?", "E. B. White", "Beverly Cleary", "Roald Dahl", "Dr. Seuss"],
+      ["What is the syllable pattern of a traditional haiku?", "5-7-5", "7-5-7", "5-5-5", "3-5-3"],
+      ["Which Shakespeare play contains the line 'To be, or not to be'?", "Hamlet", "Macbeth", "King Lear", "Othello"],
+      ["Who wrote Of Mice and Men?", "John Steinbeck", "Ernest Hemingway", "Harper Lee", "William Faulkner"],
+      ["Which artist painted a famous series of Water Lilies?", "Claude Monet", "Édouard Manet", "Pierre-Auguste Renoir", "Edgar Degas"],
+      ["In The Wonderful Wizard of Oz, what color is the brick road?", "Yellow", "Red", "Green", "Gold"],
+      ["Who wrote Fahrenheit 451?", "Ray Bradbury", "George Orwell", "Aldous Huxley", "Isaac Asimov"],
+      ["How many keys does a standard modern piano have?", "88", "76", "92", "64"],
+      ["Who wrote The Cat in the Hat?", "Dr. Seuss", "Maurice Sendak", "Shel Silverstein", "Eric Carle"],
+      ["Which instrument family does the trumpet belong to?", "Brass", "Woodwind", "Strings", "Percussion"]
+    ]
+  },
+  {
+    name: "Sports & Games", color: "#ef4444", icon: "🏆",
+    questions: [
+      ["How many players does each soccer team have on the field?", "11", "9", "10", "12"],
+      ["How many squares are on a chessboard?", "64", "81", "49", "100"],
+      ["Which country hosted the first modern Olympics in 1896?", "Greece", "France", "United Kingdom", "United States"],
+      ["What is a perfect score in ten-pin bowling?", "300", "250", "200", "350"],
+      ["In tennis, what word means a score of zero?", "Love", "Nil", "Duck", "Blank"],
+      ["In which sport would you score a 'birdie'?", "Golf", "Bowling", "Cricket", "Archery"],
+      ["How many points is a touchdown worth in American football?", "6", "7", "3", "5"],
+      ["Which chess piece can only move diagonally?", "Bishop", "Rook", "Knight", "Queen"],
+      ["How many holes are on a standard golf course?", "18", "9", "12", "24"],
+      ["How long is a marathon?", "26.2 miles", "24 miles", "25 miles", "28.4 miles"],
+      ["In basketball, how many points is a shot from beyond the arc?", "3", "2", "4", "1"],
+      ["The Tour de France is a race in which sport?", "Cycling", "Running", "Motor racing", "Rowing"],
+      ["How many dots are on a standard six-sided die in total?", "21", "18", "24", "36"],
+      ["Which country created the sport of judo?", "Japan", "China", "South Korea", "Brazil"],
+      ["In baseball, how many strikes make a strikeout?", "3", "2", "4", "5"],
+      ["How many rings are on the Olympic flag?", "5", "4", "6", "7"],
+      ["The Stanley Cup is awarded in which sport?", "Ice hockey", "Basketball", "Baseball", "American football"],
+      ["How many players from each team are on a basketball court at once?", "5", "6", "7", "4"],
+      ["Which country won the first FIFA World Cup in 1930?", "Uruguay", "Brazil", "Argentina", "Italy"],
+      ["Which chess piece moves in an L shape?", "Knight", "Bishop", "Rook", "King"],
+      ["Which sport is played at Wimbledon?", "Tennis", "Golf", "Cricket", "Polo"],
+      ["How many players are on the field for a baseball team on defense?", "9", "10", "11", "8"],
+      ["Which sport uses a shuttlecock?", "Badminton", "Squash", "Table tennis", "Volleyball"],
+      ["In which sport would you see a 'slam dunk'?", "Basketball", "Volleyball", "Tennis", "Water polo"],
+      ["How many players per team are on a volleyball court?", "6", "5", "7", "9"],
+      ["In the U.S. version of Monopoly, which property costs the most?", "Boardwalk", "Park Place", "Marvin Gardens", "Pennsylvania Avenue"],
+      ["How many cards are in a standard deck without jokers?", "52", "48", "54", "56"],
+      ["In golf, what is a score of two under par on a hole called?", "Eagle", "Birdie", "Bogey", "Par"],
+      ["Which country is the birthplace of cricket?", "England", "Australia", "India", "South Africa"],
+      ["How long is an Olympic swimming pool?", "50 meters", "25 meters", "100 meters", "75 meters"],
+      ["In bowling, what is it called when you knock down all ten pins with your first ball?", "Strike", "Spare", "Split", "Gutter"],
+      ["The Super Bowl is the championship game of which sport?", "American football", "Baseball", "Basketball", "Ice hockey"],
+      ["How many periods are in a regulation NHL hockey game?", "3", "2", "4", "5"],
+      ["In English-language Scrabble, how many points is the letter Q worth?", "10", "8", "5", "12"],
+      ["Which martial art's name means 'the way of the foot and fist'?", "Taekwondo", "Karate", "Kung fu", "Judo"],
+      ["How many points is a field goal worth in American football?", "3", "2", "6", "1"],
+      ["In soccer, which player may handle the ball inside their own penalty area?", "Goalkeeper", "Defender", "Captain", "Striker"],
+      ["In which game do players try to get five in a row, calling out letters B-I-N-G-O?", "Bingo", "Yahtzee", "Keno", "Lotto"],
+      ["How many pieces does each player start with in checkers?", "12", "16", "10", "15"],
+      ["Which sport uses the terms 'love', 'deuce' and 'advantage'?", "Tennis", "Badminton", "Squash", "Table tennis"]
+    ]
+  },
+  {
+    name: "Animals & Nature", color: "#ec4899", icon: "🐾",
+    questions: [
+      ["What is the fastest land animal?", "Cheetah", "Pronghorn", "Lion", "Greyhound"],
+      ["What is the largest mammal on Earth?", "Blue whale", "African elephant", "Sperm whale", "Giraffe"],
+      ["What is a group of lions called?", "A pride", "A pack", "A herd", "A troop"],
+      ["How many legs does a spider have?", "8", "6", "10", "12"],
+      ["Which flightless bird lives mainly in Antarctica?", "Emperor penguin", "Ostrich", "Kiwi", "Emu"],
+      ["What makes up nearly all of a giant panda's diet?", "Bamboo", "Fish", "Berries", "Insects"],
+      ["Which tree species grows the tallest?", "Coast redwood", "Giant sequoia", "Douglas fir", "Baobab"],
+      ["What is a baby kangaroo called?", "A joey", "A kit", "A cub", "A calf"],
+      ["Which land mammal has the longest pregnancy?", "Elephant", "Giraffe", "Rhinoceros", "Horse"],
+      ["How many hearts does an octopus have?", "3", "1", "2", "8"],
+      ["Which is the only mammal capable of true flight?", "Bat", "Flying squirrel", "Sugar glider", "Colugo"],
+      ["What is the process of a caterpillar becoming a butterfly called?", "Metamorphosis", "Photosynthesis", "Hibernation", "Migration"],
+      ["What is the largest species of shark?", "Whale shark", "Great white shark", "Basking shark", "Tiger shark"],
+      ["A dolphin is what kind of animal?", "Mammal", "Fish", "Amphibian", "Reptile"],
+      ["Which tree produces acorns?", "Oak", "Maple", "Pine", "Birch"],
+      ["What is the largest bird in the world?", "Ostrich", "Emu", "Albatross", "Condor"],
+      ["How many legs does an insect have?", "6", "8", "4", "10"],
+      ["Which animal is often called the 'King of the Jungle'?", "Lion", "Tiger", "Gorilla", "Elephant"],
+      ["What is a group of crows called?", "A murder", "A pod", "A pride", "A gaggle"],
+      ["Frogs belong to which group of animals?", "Amphibians", "Reptiles", "Mammals", "Fish"],
+      ["What is the tallest animal in the world?", "Giraffe", "Elephant", "Ostrich", "Moose"],
+      ["What do you call an animal that eats only plants?", "Herbivore", "Carnivore", "Omnivore", "Insectivore"],
+      ["Which part of a plant absorbs water from the soil?", "Roots", "Leaves", "Stem", "Flowers"],
+      ["How many arms does a common starfish have?", "5", "6", "8", "4"],
+      ["What is the largest living reptile?", "Saltwater crocodile", "Komodo dragon", "Green anaconda", "Leatherback turtle"],
+      ["What is a baby goat called?", "A kid", "A calf", "A lamb", "A foal"],
+      ["Which lizard is famous for changing color and moving its eyes independently?", "Chameleon", "Gecko", "Iguana", "Monitor lizard"],
+      ["What pigment gives leaves their green color?", "Chlorophyll", "Carotene", "Melanin", "Hemoglobin"],
+      ["Which of these mammals lays eggs?", "Platypus", "Kangaroo", "Koala", "Armadillo"],
+      ["Which animal is famous for building dams in rivers?", "Beaver", "Otter", "Muskrat", "Badger"],
+      ["What is the largest species of wild cat?", "Tiger", "Lion", "Jaguar", "Leopard"],
+      ["Fish breathe using which organs?", "Gills", "Lungs", "Fins", "Scales"],
+      ["Which bird can fly backwards?", "Hummingbird", "Sparrow", "Kingfisher", "Swallow"],
+      ["What kind of animal is a Komodo dragon?", "Lizard", "Snake", "Crocodile", "Salamander"],
+      ["What is a group of wolves called?", "A pack", "A pride", "A herd", "A school"],
+      ["Which slow-moving mammal spends most of its life hanging upside down in trees?", "Sloth", "Koala", "Lemur", "Opossum"],
+      ["What do bees mainly collect from flowers to make honey?", "Nectar", "Pollen", "Sap", "Dew"],
+      ["Which ocean animal has a shell and is a close relative of the crab?", "Lobster", "Jellyfish", "Starfish", "Sea urchin"],
+      ["Which African burrowing animal uses its long sticky tongue to eat ants and termites?", "Aardvark", "Okapi", "Meerkat", "Tapir"],
+      ["What is a young frog with a tail and gills called?", "A tadpole", "A cub", "A fry", "A kit"]
+    ]
+  }
+];
+
+function extractArrayLiteral(src, marker) {
+  const at = src.indexOf(marker);
+  if (at < 0) return null;
+  let i = src.indexOf('[', at);
+  if (i < 0) return null;
+  const start = i;
+  let depth = 0, quote = null;
+  for (; i < src.length; i++) {
+    const ch = src[i];
+    if (quote) { if (ch === '\\') { i++; continue; } if (ch === quote) quote = null; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
+    if (ch === '/' && src[i + 1] === '/') { i = src.indexOf('\n', i); if (i < 0) return null; continue; }
+    if (ch === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i + 2) + 1; if (i <= 0) return null; continue; }
+    if (ch === '[') depth++;
+    else if (ch === ']') { depth--; if (depth === 0) return src.slice(start, i + 1); }
+  }
+  return null;
+}
+const isQ = q => Array.isArray(q) && q.length >= 3 && q.every(x => typeof x === 'string');
+function validCats(c) {
+  return Array.isArray(c) && c.length === 6 && c.every(x => x && typeof x.name === 'string' && typeof x.color === 'string' && Array.isArray(x.questions) && x.questions.some(isQ));
+}
+async function loadGameQuestions() {
+  try {
+    const res = await fetch(GAME_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const lit = extractArrayLiteral(await res.text(), 'const CATEGORIES');
+    if (!lit) throw new Error('no CATEGORIES found');
+    const cats = new Function('"use strict"; return (' + lit + ');')();
+    if (!validCats(cats)) throw new Error('unexpected format');
+    cats.forEach(c => { c.questions = c.questions.filter(isQ); });
+    CATEGORIES = cats;
+    return 'live';
+  } catch (err) {
+    console.warn('Using built-in questions:', err);
+    return 'built-in';
+  }
+}
+const shortName = c => c.name.split(/[ &]/)[0];
+const questionCount = () => CATEGORIES.reduce((n, c) => n + c.questions.length, 0);
+
+/* ===================================================================== */
+const PREFIX = 'wedgequest-party-';
+const SPACES = 24;
+const TOKEN_COLORS = ['#ffffff', '#ff5c8a', '#4dd0ff', '#ffe066', '#7dffb0', '#c98bff', '#ff9a52', '#b8c4d6'];
+const params = new URLSearchParams(location.search);
+const app = document.getElementById('app');
+
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function spaceInfo(i) {
+  if (i % 4 === 0) return { type: 'hq', cat: i / 4 };
+  if (i % 8 === 2) return { type: 'again', cat: null };
+  return { type: 'cat', cat: (Math.floor(i / 4) + (i % 4)) % 6 };
+}
+function spaceLabel(i) {
+  const s = spaceInfo(i);
+  if (s.type === 'again') return { label: 'Roll Again', sub: 'Take another turn', color: '#5d6b8a' };
+  const c = CATEGORIES[s.cat];
+  return s.type === 'hq'
+    ? { label: c.name + ' ★', sub: 'Wedge space!', color: c.color }
+    : { label: c.name, sub: 'Question', color: c.color };
+}
+
+function pieSVG(wedges, size, colors) {
+  colors = colors || CATEGORIES.map(c => c.color);
+  let out = `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="flex:0 0 auto"><circle cx="50" cy="50" r="47" fill="#10162a" stroke="#fff" stroke-width="4"/>`;
+  for (let i = 0; i < 6; i++) {
+    const a0 = (-90 + i * 60) * Math.PI / 180, a1 = (-90 + (i + 1) * 60) * Math.PI / 180;
+    const x0 = 50 + 43 * Math.cos(a0), y0 = 50 + 43 * Math.sin(a0), x1 = 50 + 43 * Math.cos(a1), y1 = 50 + 43 * Math.sin(a1);
+    out += `<path d="M50 50 L${x0.toFixed(1)} ${y0.toFixed(1)} A43 43 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${wedges && wedges[i] ? colors[i] : 'transparent'}" stroke="#ffffff30" stroke-width="1.5"/>`;
+  }
+  return out + '</svg>';
+}
+
+const isPhoneScreen = window.matchMedia('(max-width: 700px)').matches;
+if (params.has('host')) startHost();
+else if (params.has('join') || isPhoneScreen) startController();
+else startHost();
+
+/* =====================================================================
+   HOST (the TV screen)
+   ===================================================================== */
+function startHost() {
+  document.body.className = 'tv';
+  const S = {
+    phase: 'lobby', players: [], turn: 0, ready: false, netError: null,
+    roll: null, die: null, options: null, q: null, answer: null, result: null, gotWedge: false,
+    note: '', winner: null, winTarget: 6, timer: 20, gen: 0, timerId: null, qSource: null,
+  };
+  let peer = null, code = '';
+  const bank = {};
+
+  function createRoom() {
+    code = Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+    S.ready = false;
+    peer = new Peer(PREFIX + code);
+    peer.on('open', () => { S.ready = true; S.netError = null; render(); });
+    peer.on('connection', conn => {
+      conn.on('data', d => onMsg(conn, d));
+      conn.on('close', () => onClose(conn));
+      conn.on('error', () => onClose(conn));
+    });
+    peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) {} });
+    peer.on('error', e => {
+      if (e.type === 'unavailable-id') { try { peer.destroy(); } catch (x) {} createRoom(); return; }
+      if (e.type === 'peer-unavailable') return;
+      S.netError = e.type; render();
+    });
+  }
+
+  const active = () => S.players[S.turn];
+  const cleanName = n => (String(n || '').trim().slice(0, 12)) || 'Player';
+
+  function onMsg(conn, d) {
+    if (!d || typeof d !== 'object') return;
+    if (d.t === 'join') {
+      const id = String(d.id || '').slice(0, 40);
+      let p = S.players.find(x => x.id === id);
+      if (p) {
+        p.conn = conn; p.online = true; p.name = cleanName(d.name);
+      } else {
+        if (S.phase !== 'lobby') { conn.send({ t: 'error', msg: 'This game already started — hop in next round!' }); return; }
+        if (S.players.length >= 8) { conn.send({ t: 'error', msg: 'The room is full (8 players).' }); return; }
+        const used = S.players.map(x => x.color);
+        p = { id, name: cleanName(d.name), color: TOKEN_COLORS.find(c => !used.includes(c)), pos: 0, wedges: [false, false, false, false, false, false], conn, online: true };
+        S.players.push(p);
+      }
+      conn.player = p;
+      render();
+      return;
+    }
+    const p = conn.player;
+    if (!p) return;
+    if (d.t === 'start' && S.phase === 'lobby' && S.players[0] === p) startGame();
+    else if (d.t === 'again' && S.phase === 'over' && S.players[0] === p) backToLobby();
+    else if (p !== active()) return;
+    else if (d.t === 'roll' && S.phase === 'roll') doRoll();
+    else if (d.t === 'move' && S.phase === 'choose') doMove(d.dir === 'ccw' ? 'ccw' : 'cw');
+    else if (d.t === 'answer' && S.phase === 'question') doAnswer(Number(d.i));
+  }
+
+  function onClose(conn) {
+    const p = conn.player;
+    if (p && p.conn === conn) { p.conn = null; p.online = false; render(); }
+  }
+
+  /* ---------- game flow ---------- */
+  function nextQuestion(cat) {
+    if (!bank[cat] || !bank[cat].length) bank[cat] = shuffle(CATEGORIES[cat].questions);
+    const [text, ...answers] = bank[cat].pop();
+    const order = shuffle(answers.map((_, k) => k));
+    return { cat, text, choices: order.map(k => answers[k]), correct: order.indexOf(0) };
+  }
+
+  function startGame() {
+    if (!S.players.length || !S.qSource) return;
+    S.gen++;
+    S.players.forEach(p => { p.pos = 0; p.wedges = [false, false, false, false, false, false]; });
+    S.turn = 0; S.winner = null; S.q = null; S.roll = null; S.die = null; S.options = null; S.note = '';
+    S.phase = 'roll';
+    render();
+  }
+
+  function backToLobby() {
+    S.gen++; clearInterval(S.timerId);
+    S.phase = 'lobby'; S.winner = null; S.q = null;
+    render();
+  }
+
+  function doRoll() {
+    const g = S.gen; S.phase = 'rolling'; S.note = '';
+    let n = 0;
+    render();
+    const id = setInterval(() => {
+      if (g !== S.gen) { clearInterval(id); return; }
+      S.die = 1 + Math.floor(Math.random() * 6); n++;
+      if (n >= 9) {
+        clearInterval(id);
+        S.roll = S.die;
+        const p = active();
+        S.options = { cw: (p.pos + S.roll) % SPACES, ccw: (p.pos - S.roll + SPACES) % SPACES };
+        S.phase = 'choose';
+        render();
+      } else renderTV();
+    }, 90);
+  }
+
+  function doMove(dir) {
+    const g = S.gen, p = active(), step = dir === 'ccw' ? -1 : 1;
+    let left = S.roll;
+    S.phase = 'moving';
+    render();
+    const id = setInterval(() => {
+      if (g !== S.gen) { clearInterval(id); return; }
+      p.pos = (p.pos + step + SPACES) % SPACES; left--;
+      if (left <= 0) { clearInterval(id); S.options = null; land(); }
+      else renderTV();
+    }, 240);
+  }
+
+  function land() {
+    const p = active(), info = spaceInfo(p.pos);
+    if (info.type === 'again') { S.note = 'again'; S.phase = 'roll'; render(); return; }
+    S.q = nextQuestion(info.cat);
+    S.q.hq = info.type === 'hq';
+    S.q.endsAt = Date.now() + S.timer * 1000;
+    S.answer = null; S.result = null; S.gotWedge = false;
+    S.phase = 'question';
+    render();
+    const g = S.gen;
+    clearInterval(S.timerId);
+    S.timerId = setInterval(() => {
+      if (g !== S.gen || S.phase !== 'question') { clearInterval(S.timerId); return; }
+      if (Date.now() >= S.q.endsAt) doAnswer(-1); else tickTimer();
+    }, 200);
+  }
+
+  function doAnswer(i) {
+    if (S.phase !== 'question') return;
+    clearInterval(S.timerId);
+    const p = active(), ok = i === S.q.correct;
+    S.answer = i;
+    S.result = ok ? 'correct' : (i < 0 ? 'timeout' : 'wrong');
+    S.gotWedge = false;
+    if (ok && S.q.hq && !p.wedges[S.q.cat]) { p.wedges[S.q.cat] = true; S.gotWedge = true; }
+    S.phase = 'reveal';
+    render();
+    const g = S.gen;
+    setTimeout(() => { if (g === S.gen) afterReveal(ok); }, 3500);
+  }
+
+  function afterReveal(ok) {
+    const p = active();
+    if (p.wedges.filter(Boolean).length >= S.winTarget) { S.winner = p; S.phase = 'over'; render(); return; }
+    if (ok) S.note = 'keep';
+    else { S.turn = nextTurn(); S.note = ''; }
+    S.q = null; S.phase = 'roll';
+    render();
+  }
+
+  function nextTurn() {
+    const n = S.players.length;
+    for (let k = 1; k <= n; k++) { const idx = (S.turn + k) % n; if (S.players[idx].online) return idx; }
+    return (S.turn + 1) % n;
+  }
+
+  function skipTurn() {
+    if (['lobby', 'over', 'reveal'].includes(S.phase)) return;
+    if (S.phase === 'question') { doAnswer(-1); return; }
+    S.gen++;
+    S.turn = nextTurn(); S.note = ''; S.options = null; S.q = null; S.phase = 'roll';
+    render();
+  }
+
+  /* ---------- views sent to phones ---------- */
+  function viewFor(p) {
+    const a = active();
+    const v = {
+      t: 'view', phase: S.phase, code,
+      me: { name: p.name, color: p.color, wedges: p.wedges },
+      vip: S.players[0] === p, isMe: a === p,
+      activeName: a ? a.name : '', count: S.players.length, roll: S.roll, note: S.note,
+      winTarget: S.winTarget, cats: CATEGORIES.map(c => c.color),
+    };
+    if (S.phase === 'choose' && S.options) {
+      v.options = ['cw', 'ccw'].map(dir => ({ dir, ...spaceLabel(S.options[dir]) }));
+    }
+    if ((S.phase === 'question' || S.phase === 'reveal') && S.q) {
+      v.q = { cat: S.q.cat, catName: CATEGORIES[S.q.cat].name, color: CATEGORIES[S.q.cat].color, hq: S.q.hq, text: S.q.text, choices: S.q.choices,
+              secs: Math.max(0, Math.ceil((S.q.endsAt - Date.now()) / 1000)) };
+    }
+    if (S.phase === 'reveal') {
+      v.result = S.result; v.correct = S.q.correct; v.correctText = S.q.choices[S.q.correct]; v.answer = S.answer; v.gotWedge = S.gotWedge;
+    }
+    if (S.phase === 'over' && S.winner) v.winner = S.winner.name;
+    return v;
+  }
+
+  function broadcast() {
+    S.players.forEach(p => { if (p.conn && p.conn.open) { try { p.conn.send(viewFor(p)); } catch (e) {} } });
+  }
+
+  function render() { renderTV(); broadcast(); }
+
+  /* ---------- TV rendering ---------- */
+  function joinUrl() { return location.origin + location.pathname + '?join=' + code; }
+
+  function renderTV() {
+    if (S.phase === 'lobby') return renderLobby();
+    app.innerHTML = `<div class="game">
+      <div class="boardwrap">${boardSVG()}</div>
+      <aside class="side">
+        <div class="status">${statusHTML()}</div>
+        <div class="plist">${S.players.map((p, i) => `
+          <div class="prow ${i === S.turn ? 'active' : ''} ${p.online ? '' : 'off'}">
+            <span class="dot" style="background:${p.color}"></span>
+            <span class="nm">${esc(p.name)}${p.online ? '' : ' (offline)'}</span>
+            <span class="ct">${p.wedges.filter(Boolean).length}/${S.winTarget}</span>
+            ${pieSVG(p.wedges, '44')}
+          </div>`).join('')}</div>
+        <div class="tvbtns">
+          <button class="btn ghost" data-act="skip">Skip turn</button>
+          <button class="btn ghost" data-act="fs">Full screen</button>
+          <span class="room">Room <b>${code}</b></span>
+        </div>
+      </aside>
+      ${overlayHTML()}
+    </div>`;
+  }
+
+  function statusHTML() {
+    const a = active();
+    if (!a) return '';
+    const who = `<b style="color:${a.color}">${esc(a.name)}</b>`;
+    const die = S.die ? `<div class="die ${S.phase === 'rolling' ? 'spin' : ''}">${S.die}</div>` : '';
+    let msg = '';
+    switch (S.phase) {
+      case 'roll':
+        msg = (S.note === 'again' ? 'Roll Again space! ' : S.note === 'keep' ? 'Correct — keep going! ' : '') + `${who}, roll the die on your phone.`;
+        return `<div>${msg}</div>`;
+      case 'rolling': msg = `${who} is rolling…`; break;
+      case 'choose': msg = `${who} rolled a <b>${S.roll}</b>. Pick a direction on your phone.`; break;
+      case 'moving': msg = `${who} is on the move…`; break;
+      case 'question': case 'reveal': msg = `${who} is answering.`; break;
+      case 'over': msg = `${who} wins!`; break;
+    }
+    return die + `<div>${msg}</div>`;
+  }
+
+  function boardSVG() {
+    const cx = 500, cy = 500, R = 400;
+    const pt = (i, r) => { const a = (-90 + i * (360 / SPACES)) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+    let s = `<svg class="board" viewBox="0 0 1000 1000">`;
+    // spokes to HQs
+    for (let c = 0; c < 6; c++) {
+      const [x, y] = pt(c * 4, R - 55);
+      s += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${CATEGORIES[c].color}" stroke-opacity=".28" stroke-width="22" stroke-linecap="round"/>`;
+    }
+    // ring track
+    s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#ffffff10" stroke-width="96"/>`;
+    // center wheel (slices centered on their HQ spoke)
+    for (let c = 0; c < 6; c++) {
+      const a0 = (-90 + c * 60 - 30) * Math.PI / 180, a1 = (-90 + c * 60 + 30) * Math.PI / 180, r = 215;
+      s += `<path d="M${cx} ${cy} L${cx + r * Math.cos(a0)} ${cy + r * Math.sin(a0)} A${r} ${r} 0 0 1 ${cx + r * Math.cos(a1)} ${cy + r * Math.sin(a1)} Z" fill="${CATEGORIES[c].color}" fill-opacity=".9" stroke="#0f1424" stroke-width="6"/>`;
+      const am = (-90 + c * 60) * Math.PI / 180;
+      const lx = cx + 140 * Math.cos(am), ly = cy + 140 * Math.sin(am);
+      s += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="48">${esc(CATEGORIES[c].icon || '')}</text>`;
+      s += `<text x="${lx}" y="${ly + 36}" text-anchor="middle" font-size="26" font-weight="700" fill="#fff" stroke="#0007" stroke-width="5" paint-order="stroke">${esc(shortName(CATEGORIES[c]))}</text>`;
+    }
+    s += `<circle cx="${cx}" cy="${cy}" r="62" fill="#0f1424" stroke="#fff" stroke-width="6"/>`;
+    s += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="34" font-weight="700" fill="#ffd34d">${S.winTarget}★</text>`;
+    // spaces
+    const targets = S.phase === 'choose' && S.options ? [S.options.cw, S.options.ccw] : [];
+    for (let i = 0; i < SPACES; i++) {
+      const [x, y] = pt(i, R), info = spaceInfo(i);
+      const r = info.type === 'hq' ? 54 : 36;
+      const fill = info.type === 'again' ? '#dfe6ee' : CATEGORIES[info.cat].color;
+      if (targets.includes(i)) s += `<circle class="pulse" cx="${x}" cy="${y}" r="${r + 16}" fill="none" stroke="#ffd34d" stroke-width="10"/>`;
+      s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="#0f1424" stroke-width="6"/>`;
+      if (info.type === 'hq') s += `<text x="${x}" y="${y + 15}" text-anchor="middle" font-size="42">${esc(CATEGORIES[info.cat].icon || '★')}</text>`;
+      if (info.type === 'again') s += `<text x="${x}" y="${y + 13}" text-anchor="middle" font-size="38" font-weight="700" fill="#33405c">↻</text>`;
+    }
+    // tokens
+    const groups = {};
+    S.players.forEach((p, idx) => { (groups[p.pos] = groups[p.pos] || []).push(idx); });
+    Object.entries(groups).forEach(([pos, list]) => {
+      const [x, y] = pt(Number(pos), R);
+      list.forEach((idx, k) => {
+        const p = S.players[idx], n = list.length;
+        const ox = n === 1 ? 0 : 30 * Math.cos(k * 2 * Math.PI / n), oy = n === 1 ? 0 : 30 * Math.sin(k * 2 * Math.PI / n);
+        const isA = idx === S.turn;
+        s += `<circle cx="${x + ox}" cy="${y + oy}" r="${isA ? 26 : 21}" fill="${p.color}" stroke="${isA ? '#ffd34d' : '#111'}" stroke-width="${isA ? 7 : 5}"/>`;
+        s += `<text x="${x + ox}" y="${y + oy + 9}" text-anchor="middle" font-size="${isA ? 26 : 22}" font-weight="700" fill="#111">${esc(p.name.charAt(0).toUpperCase())}</text>`;
+      });
+    });
+    return s + '</svg>';
+  }
+
+  function overlayHTML() {
+    if ((S.phase === 'question' || S.phase === 'reveal') && S.q) {
+      const c = CATEGORIES[S.q.cat], a = active();
+      const choices = S.q.choices.map((t, i) => {
+        let cls = '';
+        if (S.phase === 'reveal') cls = i === S.q.correct ? 'right' : (i === S.answer ? 'wrongpick' : 'dim');
+        return `<div class="choice c${i} ${cls}"><span class="letter">${'ABCD'[i]}</span><span>${esc(t)}</span></div>`;
+      }).join('');
+      let foot;
+      if (S.phase === 'question') {
+        const left = Math.max(0, S.q.endsAt - Date.now());
+        foot = `<div class="qfoot"><div class="timer"><div id="tbar" style="width:${(left / (S.timer * 1000)) * 100}%"></div></div><div id="tsecs">${Math.ceil(left / 1000)}</div></div>`;
+      } else {
+        let txt = S.result === 'correct' ? 'Correct!' : S.result === 'timeout' ? "Time's up!" : 'Not quite!';
+        if (S.gotWedge) txt += ` ${esc(a.name)} earns the ${esc(c.name)} wedge!`;
+        else if (S.result === 'correct' && S.q.hq) txt += ` (${esc(a.name)} already has that wedge.)`;
+        foot = `<div class="result ${S.result}">${txt}</div>`;
+      }
+      return `<div class="overlay"><div class="qcard" style="--cat:${c.color}">
+        <div class="qhead">${esc(c.name)}${S.q.hq ? ' · ★ Wedge question' : ''} · <span style="color:${a.color}">${esc(a.name)}</span></div>
+        <div class="qtext">${esc(S.q.text)}</div>
+        <div class="choices">${choices}</div>${foot}</div></div>`;
+    }
+    if (S.phase === 'over' && S.winner) {
+      return `<div class="overlay"><div class="win">
+        ${pieSVG(S.winner.wedges, '220')}
+        <h2 style="color:${S.winner.color}">${esc(S.winner.name)} wins!</h2>
+        <p>Collected ${S.winTarget} wedge${S.winTarget > 1 ? 's' : ''}.</p>
+        <button class="btn" data-act="again">Back to lobby</button></div></div>`;
+    }
+    return '';
+  }
+
+  function tickTimer() {
+    const bar = document.getElementById('tbar'), secs = document.getElementById('tsecs');
+    if (!bar || !S.q) return;
+    const left = Math.max(0, S.q.endsAt - Date.now());
+    bar.style.width = (left / (S.timer * 1000)) * 100 + '%';
+    secs.textContent = Math.ceil(left / 1000);
+  }
+
+  function renderLobby() {
+    const url = joinUrl();
+    const local = location.protocol === 'file:';
+    app.innerHTML = `<div class="lobby">
+      <div class="brand"><h1>Wedge Quest <span>Party</span></h1><p>Grab your phone — scan the code or type the link to join</p></div>
+      <div class="joinbox">
+        <div class="qr" id="qr"></div>
+        <div>
+          <div class="label">Go to</div>
+          <div class="url">${S.ready ? esc(url.replace(/^https?:\/\//, '')) : '…'}</div>
+          <div class="label">Room code</div>
+          <div class="code">${S.ready ? code : '····'}</div>
+        </div>
+      </div>
+      ${S.netError ? `<div class="warn">Connection problem (${esc(S.netError)}). Check the internet connection, then <button class="btn ghost" data-act="reload">reload</button></div>` : ''}
+      ${local ? `<div class="warn">You're opening this from a file on your computer, so phones can't reach the link. Put it on GitHub Pages (or any web host) and open it from there.</div>` : ''}
+      <div class="chips">${S.players.length ? S.players.map(p => `
+        <span class="chip ${p.online ? '' : 'off'}"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}
+        <button class="x" data-act="kick" data-id="${esc(p.id)}" title="Remove">✕</button></span>`).join('') : '<span class="hint">Waiting for players to join…</span>'}</div>
+      <div class="settings">
+        <label>Wedges to win <select id="setWin">${[2, 3, 4, 5, 6].map(n => `<option ${n === S.winTarget ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Seconds per question <select id="setTime">${[10, 15, 20, 30, 45, 60].map(n => `<option ${n === S.timer ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <button class="btn" data-act="start" ${S.players.length && S.ready && S.qSource ? '' : 'disabled'}>Start game</button>
+        <button class="btn ghost" data-act="fs">Full screen</button>
+      </div>
+      <div class="hint">${S.qSource === 'live' ? `✓ ${questionCount()} questions loaded from Wedge Quest` : S.qSource ? `Using the backup question bank (${questionCount()} questions) — couldn't read ${esc(GAME_URL)}` : 'Loading questions…'}</div>
+      <div class="hint">${S.players.length ? esc(S.players[0].name) + ' can also start the game from their phone.' : 'Up to 8 players.'}</div>
+    </div>`;
+    if (S.ready && window.QRCode) {
+      try { new QRCode(document.getElementById('qr'), { text: url, width: 256, height: 256, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); } catch (e) {}
+    }
+  }
+
+  app.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'start') startGame();
+    else if (act === 'skip') skipTurn();
+    else if (act === 'again') backToLobby();
+    else if (act === 'reload') location.reload();
+    else if (act === 'fs') { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); }
+    else if (act === 'kick') {
+      const i = S.players.findIndex(p => p.id === b.dataset.id);
+      if (i >= 0) { const [p] = S.players.splice(i, 1); try { p.conn && p.conn.send({ t: 'error', msg: 'You were removed from the room.' }); p.conn && p.conn.close(); } catch (x) {} render(); }
+    }
+  });
+  app.addEventListener('change', e => {
+    if (e.target.id === 'setWin') { S.winTarget = Number(e.target.value); broadcast(); }
+    if (e.target.id === 'setTime') S.timer = Number(e.target.value);
+  });
+
+  if (!window.Peer) { app.innerHTML = '<div class="lobby"><div class="warn">Could not load the networking library. Check the internet connection and reload.</div></div>'; return; }
+  createRoom();
+  render();
+  loadGameQuestions().then(src => { S.qSource = src; render(); });
+}
+
+/* =====================================================================
+   CONTROLLER (each player's phone)
+   ===================================================================== */
+function startController() {
+  document.body.className = 'phone';
+  let pid = store.get('wq-pid');
+  if (!pid) { pid = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set('wq-pid', pid); }
+  let name = store.get('wq-name') || '';
+  let code = (params.get('join') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+  let peer = null, conn = null, view = null, status = 'form', errMsg = '';
+  let lockedKey = null, pickedIdx = null, deadline = 0, cdId = null, connectTimer = null, wakeLock = null;
+  let lastPhase = '', lastIsMe = false;
+
+  const send = o => { if (conn && conn.open) { try { conn.send(o); } catch (e) {} } };
+  const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+  async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {} }
+
+  function connect() {
+    if (!window.Peer) { status = 'error'; errMsg = 'Could not load the networking library. Check your internet and reload.'; render(); return; }
+    status = 'connecting'; view = null; render();
+    try { peer && peer.destroy(); } catch (e) {}
+    clearTimeout(connectTimer);
+    connectTimer = setTimeout(() => {
+      if (status === 'connecting') { status = 'error'; errMsg = `Couldn't reach room ${code}. Make sure the TV screen is open, then try again.`; render(); }
+    }, 12000);
+    peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(PREFIX + code, { reliable: true });
+      conn.on('open', () => { clearTimeout(connectTimer); conn.send({ t: 'join', id: pid, name }); status = 'connected'; keepAwake(); render(); });
+      conn.on('data', d => {
+        if (!d || typeof d !== 'object') return;
+        if (d.t === 'view') { view = d; onView(); render(); }
+        else if (d.t === 'error') { status = 'error'; errMsg = d.msg; render(); try { conn.close(); } catch (e) {} }
+      });
+      conn.on('close', () => { if (status === 'connected') { status = 'lost'; render(); } });
+    });
+    peer.on('error', e => {
+      clearTimeout(connectTimer);
+      if (status === 'error') return;
+      errMsg = e.type === 'peer-unavailable' ? `Couldn't find room ${code}. Check the code on the TV.` : `Connection problem (${e.type}). Try again.`;
+      status = 'error'; render();
+    });
+  }
+
+  function onView() {
+    const myTurnNow = view.isMe && view.phase === 'roll';
+    if (myTurnNow && !(lastIsMe && lastPhase === 'roll')) buzz(200);
+    lastPhase = view.phase; lastIsMe = view.isMe;
+    if (view.phase === 'question' && view.q) {
+      const key = view.q.text;
+      if (key !== lockedKey) { lockedKey = key; pickedIdx = null; deadline = Date.now() + view.q.secs * 1000; }
+    }
+  }
+
+  function header() {
+    if (!view) return '';
+    return `<div class="ph-top"><span class="dot" style="background:${view.me.color}"></span><span class="nm">${esc(view.me.name)}</span>
+      ${pieSVG(view.me.wedges, 40, view.cats)}<span style="color:var(--muted);font-size:16px">${view.me.wedges.filter(Boolean).length}/${view.winTarget}</span></div>`;
+  }
+
+  function waitBlock(text, extra = '') {
+    return `<div class="ph-sub">${text}</div>${extra}`;
+  }
+
+  function body() {
+    const v = view, who = esc(v.activeName);
+    switch (v.phase) {
+      case 'lobby':
+        return `<div class="ph-title">You're in!</div>
+          <div class="ph-sub">${v.count} player${v.count === 1 ? '' : 's'} in room ${esc(v.code)}</div>
+          ${v.vip ? `<button class="big" data-act="start">Everyone's in — start!</button>` : waitBlock('Waiting for the game to start…', '<div class="spinner"></div>')}`;
+      case 'roll':
+        if (v.isMe) return `<div class="ph-title">${v.note === 'again' ? 'Roll again!' : v.note === 'keep' ? 'Nice! Keep going' : 'Your turn!'}</div>
+          <button class="big roll" data-act="roll">🎲<br>Roll</button>`;
+        return waitBlock(`It's <b>${who}</b>'s turn`);
+      case 'rolling':
+        return v.isMe ? `<div class="ph-title">Rolling…</div><div class="spinner"></div>` : waitBlock(`<b>${who}</b> is rolling…`);
+      case 'choose':
+        if (v.isMe && v.options) return `<div class="ph-title">You rolled a ${v.roll}</div><div class="ph-sub">Where do you want to go?</div>
+          ${v.options.map(o => `<button class="dirbtn" style="background:${o.color}" data-act="move" data-dir="${o.dir}">${o.dir === 'cw' ? '↻ Clockwise' : '↺ Counter-clockwise'}<small>${esc(o.label)} · ${esc(o.sub)}</small></button>`).join('')}`;
+        return waitBlock(`<b>${who}</b> rolled a ${v.roll}…`);
+      case 'moving':
+        return waitBlock(v.isMe ? 'Moving…' : `<b>${who}</b> is moving…`);
+      case 'question': {
+        const q = v.q;
+        const qbox = `<div class="ph-q" style="--cat:${q.color}"><div class="ph-cat">${esc(q.catName)}${q.hq ? ' · ★ Wedge' : ''}</div>${esc(q.text)}</div>`;
+        if (!v.isMe) return waitBlock(`<b>${who}</b> is answering…`, qbox);
+        const locked = pickedIdx !== null;
+        return `${qbox}<div class="ph-secs" id="psecs">${locked ? 'Locked in!' : Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) + 's left'}</div>
+          ${q.choices.map((t, i) => `<button class="ans c${i} ${pickedIdx === i ? 'picked' : ''}" data-act="answer" data-i="${i}" ${locked ? 'disabled' : ''}><span class="letter">${'ABCD'[i]}</span><span>${esc(t)}</span></button>`).join('')}`;
+      }
+      case 'reveal': {
+        const label = v.result === 'correct' ? 'Correct!' : v.result === 'timeout' ? "Time's up!" : 'Not quite!';
+        const detail = v.result === 'correct'
+          ? (v.gotWedge ? `${v.isMe ? 'You' : who} earned the <b>${esc(v.q.catName)}</b> wedge!` : '')
+          : `Answer: <b>${esc(v.correctText)}</b>`;
+        if (v.isMe) return `<div class="ph-res ${v.result}">${label}</div><div class="ph-sub">${detail}</div>`;
+        return waitBlock(`<b>${who}</b>: ${label}`, `<div class="ph-sub">${detail}</div>`);
+      }
+      case 'over':
+        return `<div class="ph-title">${v.winner === v.me.name ? 'You win! 🎉' : `<span>${esc(v.winner)}</span> wins!`}</div>
+          ${v.vip ? `<button class="big" data-act="again">Play again</button>` : waitBlock('Thanks for playing!')}`;
+    }
+    return '';
+  }
+
+  function render() {
+    clearInterval(cdId);
+    if (status === 'form') {
+      app.innerHTML = `<div class="ph-main">
+        <div class="ph-title">Wedge Quest <span>Party</span></div>
+        <label class="field">Room code<input id="roomIn" maxlength="4" autocomplete="off" autocapitalize="characters" value="${esc(code)}" placeholder="ABCD"></label>
+        <label class="field">Your name<input id="nameIn" maxlength="12" autocomplete="off" value="${esc(name)}" placeholder="Name"></label>
+        <button class="big" data-act="join">Join</button>
+        <div class="err" id="formErr"></div>
+        <button class="link" data-act="host">Host a game on this screen instead</button>
+      </div>`;
+      return;
+    }
+    if (status === 'connecting' || (status === 'connected' && !view)) {
+      app.innerHTML = `<div class="ph-main"><div class="spinner"></div><div class="ph-sub">Joining room ${esc(code)}…</div></div>`;
+      return;
+    }
+    if (status === 'error' || status === 'lost') {
+      app.innerHTML = `<div class="ph-main">
+        <div class="ph-title">${status === 'lost' ? 'Disconnected' : 'Hmm…'}</div>
+        <div class="err">${status === 'lost' ? 'Lost connection to the TV.' : esc(errMsg)}</div>
+        <button class="big" data-act="retry">Reconnect</button>
+        <button class="link" data-act="change">Change room or name</button></div>`;
+      return;
+    }
+    app.innerHTML = header() + `<div class="ph-main">${body()}</div>`;
+    if (view.phase === 'question' && view.isMe && pickedIdx === null) {
+      cdId = setInterval(() => {
+        const el = document.getElementById('psecs');
+        if (el) el.textContent = Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) + 's left';
+      }, 250);
+    }
+  }
+
+  app.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'join') {
+      const c = document.getElementById('roomIn').value.toUpperCase().replace(/[^A-Z]/g, '');
+      const n = document.getElementById('nameIn').value.trim();
+      const err = document.getElementById('formErr');
+      if (c.length !== 4) { err.textContent = 'Enter the 4-letter room code from the TV.'; return; }
+      if (!n) { err.textContent = 'Enter your name.'; return; }
+      code = c; name = n.slice(0, 12); store.set('wq-name', name);
+      connect();
+    }
+    else if (act === 'host') location.href = location.pathname + '?host';
+    else if (act === 'retry') connect();
+    else if (act === 'change') { status = 'form'; try { peer && peer.destroy(); } catch (x) {} render(); }
+    else if (act === 'start') send({ t: 'start' });
+    else if (act === 'again') send({ t: 'again' });
+    else if (act === 'roll') { send({ t: 'roll' }); b.disabled = true; buzz(40); }
+    else if (act === 'move') { send({ t: 'move', dir: b.dataset.dir }); app.querySelectorAll('.dirbtn').forEach(x => x.disabled = true); buzz(40); }
+    else if (act === 'answer') {
+      if (pickedIdx !== null) return;
+      pickedIdx = Number(b.dataset.i);
+      send({ t: 'answer', i: pickedIdx });
+      buzz(40);
+      render();
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (status === 'lost' || (status === 'connected' && (!conn || !conn.open))) connect();
+    else if (status === 'connected') keepAwake();
+  });
+
+  render();
+}
+</script>
+</body>
+</html>
