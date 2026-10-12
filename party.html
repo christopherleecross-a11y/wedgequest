@@ -748,7 +748,7 @@ function startHost() {
     roll: 6, rolling: false, dests: new Map(), destList: [], pick: null,
     q: null, answer: null, result: null, gotWedge: false,
     status: '', winner: null, winTarget: 6, timer: 0, cpuLevel: 'medium',
-    sound: store.get('wq-sound') !== 'off', voice: store.get('wq-voice') !== 'off', readQ: store.get('wq-readq') === 'on', audioReady: false,
+    sound: store.get('wq-sound') !== 'off', voice: store.get('wq-voice') !== 'off', readQ: store.get('wq-readq') === 'on', audioReady: false, voiceName: store.get('wq-voicename') || '',
     gen: 0, step: 0, timerId: null,
   };
   let peer = null, code = '', BOARD_STATIC = '', cpuKey = '';
@@ -817,12 +817,42 @@ function startHost() {
     },
   };
   const spoken = p => p.name;
+
+  /* Voices: the Mac's downloadable "Premium" / "Enhanced" voices sound far more natural
+     than the default one, so the best installed English voice is picked automatically. */
+  let VOICES = [];
+  const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|fred|good news|hysterical|jester|junior|kathy|organ|pipe organ|ralph|superstar|trinoids|whisper|wobble|zarvox|grandma|grandpa|eddy|flo|reed|rocko|sandy|shelley/i;
+  function voiceScore(v) {
+    let s = 0;
+    if (/premium/i.test(v.name)) s += 100;
+    else if (/enhanced/i.test(v.name)) s += 80;
+    else if (/natural|neural|online/i.test(v.name)) s += 75;
+    else if (/^google/i.test(v.name)) s += 60;
+    else if (/samantha|ava|zoe|allison|susan|evan|nathan|tom|serena|daniel|karen|moira|tessa/i.test(v.name)) s += 40;
+    if (NOVELTY.test(v.name)) s -= 200;
+    if (/en[-_]US/i.test(v.lang)) s += 5;
+    return s;
+  }
+  function loadVoices() {
+    try {
+      VOICES = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)).sort((a, b) => voiceScore(b) - voiceScore(a) || a.name.localeCompare(b.name));
+    } catch (e) { VOICES = []; }
+  }
+  function currentVoice() {
+    return VOICES.find(v => v.name === S.voiceName) || VOICES[0] || null;
+  }
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    try { speechSynthesis.addEventListener('voiceschanged', () => { loadVoices(); if (S.phase === 'lobby') renderLobby(); }); } catch (e) {}
+  }
   function say(text) {
     if (!S.voice || !('speechSynthesis' in window)) return;
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1; u.pitch = 1.05;
+      const v = currentVoice();
+      if (v) { u.voice = v; u.lang = v.lang; }
+      u.rate = 0.98; u.pitch = 1;
       speechSynthesis.speak(u);
     } catch (e) {}
   }
@@ -1324,15 +1354,17 @@ function startHost() {
         <label>Sound effects <select id="setSound"><option value="on" ${S.sound ? 'selected' : ''}>On</option><option value="off" ${S.sound ? '' : 'selected'}>Off</option></select></label>
         <label>Announcer <select id="setVoice"><option value="on" ${S.voice ? 'selected' : ''}>On</option><option value="off" ${S.voice ? '' : 'selected'}>Off</option></select></label>
         <label>Read questions aloud <select id="setReadQ"><option value="on" ${S.readQ ? 'selected' : ''}>On</option><option value="off" ${S.readQ ? '' : 'selected'}>Off</option></select></label>
+        ${VOICES.length ? `<label>Voice <select id="setVoiceName">${VOICES.map(v => `<option value="${esc(v.name)}" ${currentVoice() === v ? 'selected' : ''}>${esc(v.name)}${voiceScore(v) >= 75 ? ' ★' : ''}</option>`).join('')}</select></label>` : ''}
         <button class="btn ghost" data-act="testsound">🔊 Test</button>
       </div>
+      ${VOICES.length && voiceScore(VOICES[0]) < 75 ? `<div class="hint">Tip: for a more natural voice, download a Premium or Enhanced voice on this Mac (System Settings → Accessibility → Spoken Content → System voice → Manage Voices), then reload this page.</div>` : ''}
       <div class="hint" id="soundHint">${S.audioReady ? '🔊 Sound is on' : '🔇 Click anywhere on this screen to turn on sound'}</div>
       <div class="settings">
         <button class="btn" data-act="start" ${S.players.length && S.ready && S.qSource ? '' : 'disabled'}>Start game</button>
         <button class="btn ghost" data-act="fs">Full screen</button>
       </div>
       <div class="hint">${qLine}</div>
-      <div class="hint">${vip() ? esc(vip().name) + ' can also start the game from their phone. ' : ''}Up to ${MAX_PLAYERS} players.</div>
+      <div class="hint">${vip() ? esc(vip().name) + ' can also start the game by phone. ' : ''}Up to ${MAX_PLAYERS} players.</div>
     </div>`;
     if (S.ready && window.QRCode) {
       try { new QRCode(document.getElementById('qr'), { text: url, width: 256, height: 256, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); } catch (e) {}
@@ -1371,6 +1403,7 @@ function startHost() {
     if (e.target.id === 'setCpu') S.cpuLevel = e.target.value;
     if (e.target.id === 'setSound') { S.sound = e.target.value === 'on'; store.set('wq-sound', e.target.value); }
     if (e.target.id === 'setVoice') { S.voice = e.target.value === 'on'; store.set('wq-voice', e.target.value); if (!S.voice) try { speechSynthesis.cancel(); } catch (x) {} }
+    if (e.target.id === 'setVoiceName') { S.voiceName = e.target.value; store.set('wq-voicename', S.voiceName); unlockAudio(); say(vip() ? `${vip().name}, it's your turn!` : "Hi! I'll be your announcer tonight."); }
     if (e.target.id === 'setReadQ') { S.readQ = e.target.value === 'on'; store.set('wq-readq', e.target.value); }
   });
 
