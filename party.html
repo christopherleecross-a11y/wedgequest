@@ -117,8 +117,8 @@ body.tv{overflow:hidden}
 .win{text-align:center;display:flex;flex-direction:column;align-items:center;gap:2.4vmin}
 .win h2{font-size:10vmin;line-height:1}
 .win p{font-size:3vmin;color:var(--muted);font-weight:700}
-#toast{position:fixed;left:50%;top:3vmin;transform:translate(-50%,-150%);background:#0d2a35;border:1px solid var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;font-size:3vmin;padding:1.4vmin 3vmin;border-radius:99px;z-index:9;transition:transform .35s;pointer-events:none;box-shadow:0 1vmin 3vmin #0008}
-#toast.show{transform:translate(-50%,0)}
+#toast{position:fixed;left:50%;top:3vmin;transform:translate(-50%,-150%);opacity:0;visibility:hidden;transition:transform .35s,opacity .35s,visibility 0s .35s;background:#0d2a35;border:1px solid var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;font-size:3vmin;padding:1.4vmin 3vmin;border-radius:99px;z-index:9;pointer-events:none;box-shadow:0 1vmin 3vmin #0008}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .35s,opacity .2s}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:8}
 
 /* ================= PHONE ================= */
